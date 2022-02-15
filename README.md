@@ -1,1 +1,1 @@
-# -SecondOrderSensitivity-JAX
+# SecondOrderSensitivity-JAX
