@@ -6,12 +6,12 @@ try:
 except ModuleNotFoundError:
     import tests.import_header
 
-from sos_jax.jax_friendly_interface import init
+from sensitivity_jax.jax_friendly_interface import init
 
 jaxm = init()
 ################################################################################
 
-from sos_jax.sensitivity import implicit_hessian
+from sensitivity_jax.sensitivity import implicit_hessian
 import objs
 
 OPT = objs.CE()

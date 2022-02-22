@@ -19,9 +19,12 @@ sys.path.insert(
 
 # -- Project information -----------------------------------------------------
 
-project = "SecondOrderSensitivity-JAX"
+project = "sensitivity_jax"
 copyright = "2022, Robert Dyro"
 author = "Robert Dyro"
+
+html_logo = "images/icon.png"
+html_favicon = "images/favicon.png"
 
 
 # -- General configuration ---------------------------------------------------
@@ -44,7 +47,7 @@ templates_path = ["_templates"]
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+exclude_patterns = ["_autosummary/*"]
 
 
 # -- Options for HTML output -------------------------------------------------

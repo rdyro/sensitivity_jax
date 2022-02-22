@@ -3,80 +3,36 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-SecondOrderSensitivity-JAX Documentation
-========================================
-
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
-Quick Intro Tutorial
-====================
+Optimization Sensitivity in JAX - Reference Documentation - First- and Second-order Optimization
+================================================================================================
+
+``sensitivity_jax`` is a package designed to allow taking first- and
+**second-order** derivatives through optimization or any other fixed-point
+process.
 
 .. toctree::
-   :maxdepth: 1
-   :caption: Quick Intro Tutorial
+   :maxdepth: 2
+   :caption: Getting Started
 
-This package is designed to streamline...
-
-Public API
-==========
+   tutorial.tour
+   tutorial.installation
+   tutorial.sensitivity
+   tutorial.optimization
+   tutorial.bilevel_examples
 
 .. toctree::
-   :maxdepth: 1
-   :caption: Public API
+   :maxdepth: 2
+   :caption: API Documentation
 
-.. currentmodule:: sos_jax
+   sensitivity_jax
 
-Sensitivity Analysis (:code:`sensitivity`)
-------------------------------------------
+Indices and Tables
+==================
 
-.. autosummary::
-  :nosignatures:
-  :toctree: _autosummary
-
-  sensitivity.implicit_jacobian
-  sensitivity.implicit_hessian
-  sensitivity.generate_fns
-
-Differentiation (:code:`differentiation`)
------------------------------------------
-
-.. autosummary::
-  :nosignatures:
-  :toctree: _autosummary
-
-  differentiation.JACOBIAN
-  differentiation.HESSIAN
-  differentiation.HESSIAN_DIAG
-
-Jax Friendly Interface (:code:`jax_friendly_interface`)
--------------------------------------------------------
-
-.. autosummary::
-  :nosignatures:
-  :toctree: _autosummary
-
-  jax_friendly_interface.init
-  jax_friendly_interface.manual_seed
-
-Extras: Optimization (:code:`extras.optimization`)
---------------------------------------------------
-
-.. autosummary::
-  :nosignatures:
-  :toctree: _autosummary
-
-  extras.optimization.minimize_agd
-  extras.optimization.minimize_lbfgs
-  extras.optimization.minimize_sqp
-
-Extras: Neural Network Tools (:code:`extras.nn_tools`)
-----------------------------------------------------------
-
-.. autosummary::
-  :nosignatures:
-  :toctree: _autosummary
-
-  extras.nn_tools.nn_all_params
-  extras.nn_tools.nn_forward_gen
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`

@@ -1,16 +1,21 @@
-import pdb, os, sys, time, gzip, pickle, math
+################################################################################
+import unittest, pdb, time, os, sys, math
+
+try:
+    import import_header
+except ModuleNotFoundError:
+    import tests.import_header
+
+from sensitivity_jax.jax_friendly_interface import init
+
+jaxm = init()
+################################################################################
 
 import torch, numpy as np
 
-#sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), ".."))
-
-from sos_jax.jax_friendly_interface import init
-
-jaxm = init()
-
-from sos_jax.extras.optimization import minimize_lbfgs, minimize_sqp
-from sos_jax.utils import t2j
-from sos_jax.extras.nn_tools import conv, nn_all_params, nn_forward_gen
+from sensitivity_jax.extras.optimization import minimize_lbfgs, minimize_sqp
+from sensitivity_jax.utils import t2j
+from sensitivity_jax.extras.nn_tools import conv, nn_all_params, nn_forward_gen
 
 
 def Z2Za(Z, sig, d=None):

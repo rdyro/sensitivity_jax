@@ -12,13 +12,14 @@ def read(fname):
 
 
 setup(
-    name="sos_jax",
-    version="0.2.0",
+    name="sensitivity_jax",
+    version="0.3.0",
     author="Robert Dyro",
     description=(
         "Second Order Sensitivity Analysis for Bilevel Programming for JAX"
     ),
     license="MIT",
-    packages=["sos_jax"],
+    packages=["sensitivity_jax", "sensitivity_jax.extras"],
+    #install_requires=["jax", "numpy", "tqdm"],
     long_description=read("README.md"),
 )
