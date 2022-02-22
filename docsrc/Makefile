@@ -6,7 +6,7 @@
 SPHINXOPTS    ?=
 SPHINXBUILD   ?= sphinx-build
 SOURCEDIR     = source
-BUILDDIR      = ../docs
+BUILDDIR      = build
 
 # Put it first so that "make" without argument is like "make help".
 help:
@@ -19,3 +19,5 @@ help:
 %: Makefile
 	#sphinx-apidoc -f -e -o "$(SOURCEDIR)" ../sensitivity_jax
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+	rm -rf ../docs
+	cp -r build/html ../docs
