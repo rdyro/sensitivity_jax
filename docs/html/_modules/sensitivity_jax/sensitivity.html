@@ -1,0 +1,669 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>sensitivity_jax.sensitivity &#8212; sensitivity_jax  documentation</title>
+    
+  <link href="../../_static/css/theme.css" rel="stylesheet">
+  <link href="../../_static/css/index.ff1ffe594081f20da1ef19478df9384b.css" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    
+      
+
+    
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-book-theme.css?digest=84ace793992934648b4de8eed757e5a2" />
+    
+  <link rel="preload" as="script" href="../../_static/js/index.be7d3bbb2ef33a8344ce.js">
+
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx-book-theme.9d8b4a8b9bb19db25eeaddc40d639ba2.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.png"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="None">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<!-- Checkboxes to toggle the left sidebar -->
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
+<label class="overlay" for="__navigation">
+    <div class="visually-hidden">Toggle navigation sidebar</div>
+</label>
+<div class="col-12 col-md-3 bd-sidebar site-navigation " id="site-navigation">
+    
+        <div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../../index.html">
+      
+        <!-- `logo` is deprecated in Sphinx 4.0, so remove this when we stop supporting 3 -->
+        
+      
+      
+      <img src="../../_static/icon.png" class="logo" alt="logo">
+      
+      
+      <h1 class="site-logo" id="site-title">sensitivity_jax  documentation</h1>
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item active">
+        <p class="caption">
+ <span class="caption-text">
+  Getting Started
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../tutorial.tour.html">
+   Tour of
+   <code class="docutils literal notranslate">
+    <span class="pre">
+     sensitivity_jax
+    </span>
+   </code>
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../tutorial.installation.html">
+   Installation
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../tutorial.sensitivity.html">
+   Sensitivity Analysis using the Implicit Function Theorem
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../tutorial.optimization.html">
+   Optimization
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../tutorial.bilevel_examples.html">
+   Bilevel Programming Examples
+  </a>
+ </li>
+</ul>
+<p class="caption">
+ <span class="caption-text">
+  API Documentation
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../sensitivity_jax.html">
+   sensitivity_jax package
+  </a>
+ </li>
+</ul>
+
+    </div>
+</nav> <!-- To handle the deprecated key -->
+
+<div class="navbar_extra_footer">
+  Theme by the <a href="https://ebp.jupyterbook.org">Executable Book Project</a>
+</div>
+
+</div>
+
+
+          
+
+
+          
+<!-- This is an invisible pixel that we watch to see if we've scrolled. -->
+<div class="sbt-scroll-pixel-helper"></div>
+<main class="col py-md-3 pl-md-4 bd-content overflow-auto" role="main">
+    
+    <div class="topbar container-xl fixed-top">
+    <div class="topbar-contents row">
+        <div class="col-12 col-md-3 bd-topbar-whitespace site-navigation show"></div>
+        <div class="col pl-md-4 topbar-main">
+            <div class="topbar-left">
+                
+                <label class="nav-toggle-button" for="__navigation">
+                    <div class="visually-hidden">Toggle navigation</div>
+                    <i class="fas fa-bars"></i>
+                </label>
+                
+            </div>
+            
+            <!-- Source interaction buttons -->
+
+            <!-- Full screen (wrap in <a> to have style consistency -->
+
+<a class="full-screen-button"><button type="button" class="btn btn-secondary topbarbtn" data-toggle="tooltip"
+        data-placement="bottom" onclick="toggleFullScreen()" aria-label="Fullscreen mode"
+        title="Fullscreen mode"><i
+            class="fas fa-expand"></i></button></a>
+
+            <!-- Launch buttons -->
+
+        </div>
+
+        <!-- Table of contents -->
+        <div class="d-none d-md-block col-md-2 bd-toc show noprint">
+            
+        </div>
+    </div>
+</div>
+    <div id="main-content" class="row">
+        <div class="col-12 col-md-9 pl-md-3 pr-md-0">
+            <!-- Table of contents that is only displayed when printing the page -->
+            <div id="jb-print-docs-body" class="onlyprint">
+                <h1></h1>
+                <!-- Table of contents -->
+                <div id="print-main-content">
+                    <div id="jb-print-toc">
+                        
+                    </div>
+                </div>
+            </div>
+            
+              <div>
+                
+  <h1>Source code for sensitivity_jax.sensitivity</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">copy</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># order of internal imports is important, jax_friendly_interface chooses a</span>
+<span class="c1"># default device</span>
+<span class="kn">from</span> <span class="nn">.jax_friendly_interface</span> <span class="kn">import</span> <span class="n">init</span>
+
+<span class="n">jaxm</span> <span class="o">=</span> <span class="n">init</span><span class="p">()</span>
+
+<span class="c1"># the order for the rest of the imports does not matter</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">fn_with_sol_cache</span><span class="p">,</span> <span class="n">prod</span>
+<span class="kn">from</span> <span class="nn">.differentiation</span> <span class="kn">import</span> <span class="n">JACOBIAN</span><span class="p">,</span> <span class="n">HESSIAN</span><span class="p">,</span> <span class="n">HESSIAN_DIAG</span>
+<span class="kn">from</span> <span class="nn">.specialized_matrix_inverse</span> <span class="kn">import</span> <span class="n">solve_gmres</span>  <span class="c1"># , solve_cg</span>
+
+<span class="n">DeviceArray</span> <span class="o">=</span> <span class="n">jaxm</span><span class="o">.</span><span class="n">DeviceArray</span>
+
+
+<span class="k">def</span> <span class="nf">_generate_default_Dzk_solve_fn</span><span class="p">(</span>
+    <span class="n">optimizations</span><span class="p">:</span> <span class="n">Mapping</span><span class="p">,</span> <span class="n">k_fn</span><span class="p">:</span> <span class="n">Callable</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Generates the default Dzk (embedding Hessian) solution function A x = y</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        optimizations: dictionary with optional problem-specific optimizations</span>
+<span class="sd">        k_fn: k_fn(z, *params) = 0, lower/inner implicit function</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The `Dzk_solve_fn(z, *params, rhs=rhs, T=False)`, solving Dzk x = rhs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">Dzk_solve_fn</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">,</span> <span class="n">rhs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">zlen</span> <span class="o">=</span> <span class="n">z</span><span class="o">.</span><span class="n">size</span>
+        <span class="k">if</span> <span class="n">optimizations</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Dzk&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">optimizations</span><span class="p">[</span><span class="s2">&quot;Dzk&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">JACOBIAN</span><span class="p">(</span><span class="n">k_fn</span><span class="p">)(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">Dzk</span> <span class="o">=</span> <span class="n">optimizations</span><span class="p">[</span><span class="s2">&quot;Dzk&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">T</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">optimizations</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;FT&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">optimizations</span><span class="p">[</span><span class="s2">&quot;FT&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jaxm</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lu_factor</span><span class="p">(</span>
+                    <span class="n">jaxm</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">Dzk</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">zlen</span><span class="p">,</span> <span class="n">zlen</span><span class="p">)))</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="n">jaxm</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lu_solve</span><span class="p">(</span><span class="n">optimizations</span><span class="p">[</span><span class="s2">&quot;FT&quot;</span><span class="p">],</span> <span class="n">rhs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">optimizations</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;F&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">optimizations</span><span class="p">[</span><span class="s2">&quot;F&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jaxm</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lu_factor</span><span class="p">(</span>
+                    <span class="n">jaxm</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">Dzk</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">zlen</span><span class="p">,</span> <span class="n">zlen</span><span class="p">)))</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="n">jaxm</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lu_solve</span><span class="p">(</span><span class="n">optimizations</span><span class="p">[</span><span class="s2">&quot;F&quot;</span><span class="p">],</span> <span class="n">rhs</span><span class="p">)</span>
+
+    <span class="n">optimizations</span><span class="p">[</span><span class="s2">&quot;Dzk_solve_fn&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Dzk_solve_fn</span>
+
+
+<span class="k">def</span> <span class="nf">_ensure_list</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Optionally convert a single element to a list. Leave a list unchanged.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">a</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="k">else</span> <span class="p">[</span><span class="n">a</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="implicit_jacobian"><a class="viewcode-back" href="../../sensitivity_jax.sensitivity.html#sensitivity_jax.sensitivity.implicit_jacobian">[docs]</a><span class="k">def</span> <span class="nf">implicit_jacobian</span><span class="p">(</span>
+    <span class="n">k_fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+    <span class="n">z</span><span class="p">:</span> <span class="n">DeviceArray</span><span class="p">,</span>
+    <span class="o">*</span><span class="n">params</span><span class="p">:</span> <span class="n">DeviceArray</span><span class="p">,</span>
+    <span class="n">Dg</span><span class="p">:</span> <span class="n">DeviceArray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">jvp_vec</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">DeviceArray</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">DeviceArray</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">matrix_free_inverse</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">full_output</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">optimizations</span><span class="p">:</span> <span class="n">Mapping</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Computes the implicit Jacobian or VJP or JVP depending on Dg, jvp_vec.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        k_fn: k_fn(z, *params) = 0, lower/inner implicit function</span>
+<span class="sd">        z: the optimal embedding variable value array</span>
+<span class="sd">        *params: the parameters p of the bilevel program</span>
+<span class="sd">        Dg: left sensitivity vector (wrt z), for a VJP</span>
+<span class="sd">        jvp_vec: right sensitivity vector(s) (wrt p) for a JVP</span>
+<span class="sd">        matrix_free_inverse: whether to use approximate matrix inversion</span>
+<span class="sd">        full_output: whether to append accumulated optimizations to the output</span>
+<span class="sd">        optimizations: optional optimizations</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        Jacobian/VJP/JVP as specified by arguments</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">optimizations</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">optimizations</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">copy</span><span class="p">(</span><span class="n">optimizations</span><span class="p">)</span>
+    <span class="n">zlen</span><span class="p">,</span> <span class="n">plen</span> <span class="o">=</span> <span class="n">prod</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span> <span class="p">[</span><span class="n">prod</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">params</span><span class="p">]</span>
+    <span class="n">jvp_vec</span> <span class="o">=</span> <span class="n">_ensure_list</span><span class="p">(</span><span class="n">jvp_vec</span><span class="p">)</span> <span class="k">if</span> <span class="n">jvp_vec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">jvp_vec</span>
+
+    <span class="c1"># construct a default Dzk_solve_fn ##########################</span>
+    <span class="k">if</span> <span class="n">optimizations</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Dzk_solve_fn&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_generate_default_Dzk_solve_fn</span><span class="p">(</span><span class="n">optimizations</span><span class="p">,</span> <span class="n">k_fn</span><span class="p">)</span>
+    <span class="c1">#############################################################</span>
+
+    <span class="k">if</span> <span class="n">Dg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">matrix_free_inverse</span><span class="p">:</span>
+            <span class="n">A_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">JACOBIAN</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="n">z</span><span class="p">:</span> <span class="n">jaxm</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">k_fn</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+            <span class="p">)(</span><span class="n">z</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="o">-</span><span class="n">solve_gmres</span><span class="p">(</span><span class="n">A_fn</span><span class="p">,</span> <span class="n">Dg</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">zlen</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span> <span class="n">max_it</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Dzk_solve_fn</span> <span class="o">=</span> <span class="n">optimizations</span><span class="p">[</span><span class="s2">&quot;Dzk_solve_fn&quot;</span><span class="p">]</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="o">-</span><span class="n">Dzk_solve_fn</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">,</span> <span class="n">rhs</span><span class="o">=</span><span class="n">Dg</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">zlen</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span> <span class="n">T</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="o">*</span><span class="n">params</span><span class="p">:</span> <span class="n">jaxm</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
+            <span class="n">v</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">zlen</span><span class="p">)</span> <span class="o">*</span> <span class="n">k_fn</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">zlen</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">Dp</span> <span class="o">=</span> <span class="n">JACOBIAN</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">argnums</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)))(</span><span class="o">*</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">Dp_shaped</span> <span class="o">=</span> <span class="p">[</span><span class="n">Dp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">Dp</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Dp</span><span class="p">,</span> <span class="n">params</span><span class="p">)]</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">Dp_shaped</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">Dp_shaped</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">jvp_vec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="o">*</span><span class="n">params</span><span class="p">:</span> <span class="n">k_fn</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">)</span>
+            <span class="n">Dp</span> <span class="o">=</span> <span class="n">_ensure_list</span><span class="p">(</span><span class="n">jaxm</span><span class="o">.</span><span class="n">jvp</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">jvp_vec</span><span class="p">))[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">Dp</span> <span class="o">=</span> <span class="p">[</span><span class="n">Dp</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">zlen</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span> <span class="k">for</span> <span class="p">(</span><span class="n">Dp</span><span class="p">,</span> <span class="n">plen</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Dp</span><span class="p">,</span> <span class="n">plen</span><span class="p">)]</span>
+            <span class="n">Dpk</span> <span class="o">=</span> <span class="n">Dp</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Dpk</span> <span class="o">=</span> <span class="n">JACOBIAN</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="o">*</span><span class="n">params</span><span class="p">:</span> <span class="n">k_fn</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">),</span> <span class="n">argnums</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">))</span>
+            <span class="p">)(</span><span class="o">*</span><span class="n">params</span><span class="p">)</span>
+            <span class="n">Dpk</span> <span class="o">=</span> <span class="p">[</span><span class="n">Dpk</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">zlen</span><span class="p">,</span> <span class="n">plen</span><span class="p">))</span> <span class="k">for</span> <span class="p">(</span><span class="n">Dpk</span><span class="p">,</span> <span class="n">plen</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Dpk</span><span class="p">,</span> <span class="n">plen</span><span class="p">)]</span>
+
+        <span class="n">Dzk_solve_fn</span> <span class="o">=</span> <span class="n">optimizations</span><span class="p">[</span><span class="s2">&quot;Dzk_solve_fn&quot;</span><span class="p">]</span>
+        <span class="n">Dpz</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="n">Dzk_solve_fn</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">,</span> <span class="n">rhs</span><span class="o">=</span><span class="n">Dpk</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">for</span> <span class="n">Dpk</span> <span class="ow">in</span> <span class="n">Dpk</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">jvp_vec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">Dpz_shaped</span> <span class="o">=</span> <span class="p">[</span><span class="n">Dpz</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="k">for</span> <span class="n">Dpz</span> <span class="ow">in</span> <span class="n">Dpz</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Dpz_shaped</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">Dpz</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> <span class="n">param</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">Dpz</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Dpz</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">Dpz_shaped</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">Dpz_shaped</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">ret</span><span class="p">,</span> <span class="n">optimizations</span><span class="p">)</span> <span class="k">if</span> <span class="n">full_output</span> <span class="k">else</span> <span class="n">ret</span></div>
+
+
+<div class="viewcode-block" id="implicit_hessian"><a class="viewcode-back" href="../../sensitivity_jax.sensitivity.html#sensitivity_jax.sensitivity.implicit_hessian">[docs]</a><span class="k">def</span> <span class="nf">implicit_hessian</span><span class="p">(</span>
+    <span class="n">k_fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+    <span class="n">z</span><span class="p">:</span> <span class="n">DeviceArray</span><span class="p">,</span>
+    <span class="o">*</span><span class="n">params</span><span class="p">:</span> <span class="n">DeviceArray</span><span class="p">,</span>
+    <span class="n">Dg</span><span class="p">:</span> <span class="n">DeviceArray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">Hg</span><span class="p">:</span> <span class="n">DeviceArray</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">jvp_vec</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">DeviceArray</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">DeviceArray</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">optimizations</span><span class="p">:</span> <span class="n">Mapping</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Computes the implicit Hessian or chain rule depending on Dg, Hg, jvp_vec.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        k_fn: k_fn(z, *params) = 0, lower/inner implicit function</span>
+<span class="sd">        z: the optimal embedding variable value array</span>
+<span class="sd">        *params: the parameters p of the bilevel program</span>
+<span class="sd">        Dg: gradient sensitivity vector (wrt z), for chain rule</span>
+<span class="sd">        Hg: Hessian sensitivity vector (wrt z), for chain rule</span>
+<span class="sd">        jvp_vec: right sensitivity vector(s) (wrt p) for Hessian-vector-product</span>
+<span class="sd">        optimizations: optional optimizations</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        Hessian/chain rule Hessian as specified by arguments</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">optimizations</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">optimizations</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">copy</span><span class="p">(</span><span class="n">optimizations</span><span class="p">)</span>
+    <span class="n">zlen</span><span class="p">,</span> <span class="n">plen</span> <span class="o">=</span> <span class="n">prod</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span> <span class="p">[</span><span class="n">prod</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">params</span><span class="p">]</span>
+    <span class="n">jvp_vec</span> <span class="o">=</span> <span class="n">_ensure_list</span><span class="p">(</span><span class="n">jvp_vec</span><span class="p">)</span> <span class="k">if</span> <span class="n">jvp_vec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">jvp_vec</span>
+    <span class="k">if</span> <span class="n">jvp_vec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">Dg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+    <span class="c1"># construct a default Dzk_solve_fn ##########################</span>
+    <span class="k">if</span> <span class="n">optimizations</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Dzk_solve_fn&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_generate_default_Dzk_solve_fn</span><span class="p">(</span><span class="n">optimizations</span><span class="p">,</span> <span class="n">k_fn</span><span class="p">)</span>
+    <span class="c1">#############################################################</span>
+
+    <span class="c1"># compute 2nd implicit gradients</span>
+    <span class="k">if</span> <span class="n">Dg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">assert</span> <span class="n">Dg</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="n">zlen</span>
+        <span class="k">assert</span> <span class="n">Hg</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">Hg</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="n">zlen</span> <span class="o">**</span> <span class="mi">2</span>
+
+        <span class="n">Dg_</span> <span class="o">=</span> <span class="n">Dg</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">zlen</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">Hg_</span> <span class="o">=</span> <span class="n">Hg</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">zlen</span><span class="p">,</span> <span class="n">zlen</span><span class="p">))</span> <span class="k">if</span> <span class="n">Hg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">Hg</span>
+
+        <span class="c1"># compute the left hand vector in the VJP</span>
+        <span class="n">Dzk_solve_fn</span> <span class="o">=</span> <span class="n">optimizations</span><span class="p">[</span><span class="s2">&quot;Dzk_solve_fn&quot;</span><span class="p">]</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="o">-</span><span class="n">Dzk_solve_fn</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">,</span> <span class="n">rhs</span><span class="o">=</span><span class="n">Dg_</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">zlen</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span> <span class="n">T</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">:</span> <span class="n">jaxm</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
+            <span class="n">v</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">zlen</span><span class="p">)</span> <span class="o">*</span> <span class="n">k_fn</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">zlen</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">jvp_vec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">Dpz_jvp</span> <span class="o">=</span> <span class="n">_ensure_list</span><span class="p">(</span>
+                <span class="n">implicit_jacobian</span><span class="p">(</span>
+                    <span class="n">k_fn</span><span class="p">,</span>
+                    <span class="n">z</span><span class="p">,</span>
+                    <span class="o">*</span><span class="n">params</span><span class="p">,</span>
+                    <span class="n">jvp_vec</span><span class="o">=</span><span class="n">jvp_vec</span><span class="p">,</span>
+                    <span class="n">optimizations</span><span class="o">=</span><span class="n">optimizations</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">Dpz_jvp</span> <span class="o">=</span> <span class="p">[</span><span class="n">Dpz_jvp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">Dpz_jvp</span> <span class="ow">in</span> <span class="n">Dpz_jvp</span><span class="p">]</span>
+
+            <span class="c1"># compute the 2nd order derivatives consisting of 4 terms</span>
+            <span class="c1"># term 1 ##############################</span>
+            <span class="n">dfn_params</span> <span class="o">=</span> <span class="n">jaxm</span><span class="o">.</span><span class="n">grad</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="o">*</span><span class="n">params</span><span class="p">:</span> <span class="n">fn</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">),</span> <span class="n">argnums</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">))</span>
+            <span class="p">)</span>
+            <span class="n">Dpp1</span> <span class="o">=</span> <span class="n">_ensure_list</span><span class="p">(</span><span class="n">jaxm</span><span class="o">.</span><span class="n">jvp</span><span class="p">(</span><span class="n">dfn_params</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">jvp_vec</span><span class="p">))[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">Dpp1</span> <span class="o">=</span> <span class="p">[</span><span class="n">Dpp1</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">plen</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">Dpp1</span><span class="p">,</span> <span class="n">plen</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Dpp1</span><span class="p">,</span> <span class="n">plen</span><span class="p">)]</span>
+
+            <span class="c1"># term 2 ##############################</span>
+            <span class="n">Dpp2</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">jaxm</span><span class="o">.</span><span class="n">jvp</span><span class="p">(</span>
+                    <span class="k">lambda</span> <span class="n">z</span><span class="p">:</span> <span class="n">jaxm</span><span class="o">.</span><span class="n">grad</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">argnums</span><span class="o">=</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">),</span>
+                    <span class="p">(</span><span class="n">z</span><span class="p">,),</span>
+                    <span class="p">(</span><span class="n">Dpz_jvp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span><span class="p">),),</span>
+                <span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">plen</span><span class="p">)</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">Dpz_jvp</span><span class="p">,</span> <span class="n">plen</span><span class="p">))</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">Dpz_jvp</span><span class="p">,</span> <span class="n">plen</span><span class="p">))</span>
+            <span class="p">]</span>
+
+            <span class="c1"># term 3 ##############################</span>
+            <span class="n">g_</span> <span class="o">=</span> <span class="n">_ensure_list</span><span class="p">(</span>
+                <span class="n">jaxm</span><span class="o">.</span><span class="n">jvp</span><span class="p">(</span>
+                    <span class="k">lambda</span> <span class="o">*</span><span class="n">params</span><span class="p">:</span> <span class="n">jaxm</span><span class="o">.</span><span class="n">grad</span><span class="p">(</span><span class="n">fn</span><span class="p">)(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">),</span>
+                    <span class="n">params</span><span class="p">,</span>
+                    <span class="nb">tuple</span><span class="p">(</span><span class="n">jvp_vec</span><span class="p">),</span>
+                <span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="n">Dpp3</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">_ensure_list</span><span class="p">(</span>
+                    <span class="n">implicit_jacobian</span><span class="p">(</span>
+                        <span class="n">k_fn</span><span class="p">,</span>
+                        <span class="n">z</span><span class="p">,</span>
+                        <span class="o">*</span><span class="n">params</span><span class="p">,</span>
+                        <span class="n">Dg</span><span class="o">=</span><span class="n">g_</span><span class="p">,</span>
+                        <span class="n">optimizations</span><span class="o">=</span><span class="n">optimizations</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">g_</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">g_</span><span class="p">)</span>
+            <span class="p">]</span>
+
+            <span class="c1"># term 4 ##############################</span>
+            <span class="n">g_</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">jaxm</span><span class="o">.</span><span class="n">jvp</span><span class="p">(</span>
+                    <span class="k">lambda</span> <span class="n">z</span><span class="p">:</span> <span class="n">jaxm</span><span class="o">.</span><span class="n">grad</span><span class="p">(</span><span class="n">fn</span><span class="p">)(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">),</span>
+                    <span class="p">(</span><span class="n">z</span><span class="p">,),</span>
+                    <span class="p">(</span><span class="n">Dpz_jvp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span><span class="p">),),</span>
+                <span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">Dpz_jvp</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">Dpz_jvp</span><span class="p">)</span>
+            <span class="p">]</span>
+            <span class="k">if</span> <span class="n">Hg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">g_</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">g_</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">zlen</span><span class="p">)</span> <span class="o">+</span> <span class="n">Hg_</span> <span class="o">@</span> <span class="n">Dpz_jvp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">zlen</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="p">(</span><span class="n">g_</span><span class="p">,</span> <span class="n">Dpz_jvp</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">g_</span><span class="p">,</span> <span class="n">Dpz_jvp</span><span class="p">)</span>
+                <span class="p">]</span>
+            <span class="n">Dpp4</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">_ensure_list</span><span class="p">(</span>
+                    <span class="n">implicit_jacobian</span><span class="p">(</span>
+                        <span class="n">k_fn</span><span class="p">,</span>
+                        <span class="n">z</span><span class="p">,</span>
+                        <span class="o">*</span><span class="n">params</span><span class="p">,</span>
+                        <span class="n">Dg</span><span class="o">=</span><span class="n">g_</span><span class="p">,</span>
+                        <span class="n">optimizations</span><span class="o">=</span><span class="n">optimizations</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">plen</span><span class="p">)</span>
+                <span class="k">for</span> <span class="p">((</span><span class="n">i</span><span class="p">,</span> <span class="n">g_</span><span class="p">),</span> <span class="n">plen</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">g_</span><span class="p">),</span> <span class="n">plen</span><span class="p">)</span>
+            <span class="p">]</span>
+            <span class="n">Dp</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">Dg_</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">zlen</span><span class="p">))</span> <span class="o">@</span> <span class="n">Dpz_jvp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">zlen</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">Dpz_jvp</span> <span class="ow">in</span> <span class="n">Dpz_jvp</span>
+            <span class="p">]</span>
+            <span class="n">Dpp</span> <span class="o">=</span> <span class="p">[</span><span class="nb">sum</span><span class="p">(</span><span class="n">Dpp</span><span class="p">)</span> <span class="k">for</span> <span class="n">Dpp</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Dpp1</span><span class="p">,</span> <span class="n">Dpp2</span><span class="p">,</span> <span class="n">Dpp3</span><span class="p">,</span> <span class="n">Dpp4</span><span class="p">)]</span>
+
+            <span class="c1"># return the results</span>
+            <span class="n">Dp_shaped</span> <span class="o">=</span> <span class="p">[</span><span class="n">Dp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(())</span> <span class="k">for</span> <span class="n">Dp</span> <span class="ow">in</span> <span class="n">Dp</span><span class="p">]</span>
+            <span class="n">Dpp_shaped</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">Dpp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">Dpp</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Dpp</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># compute the full first order 1st gradients</span>
+            <span class="n">Dpz</span> <span class="o">=</span> <span class="n">_ensure_list</span><span class="p">(</span>
+                <span class="n">implicit_jacobian</span><span class="p">(</span>
+                    <span class="n">k_fn</span><span class="p">,</span>
+                    <span class="n">z</span><span class="p">,</span>
+                    <span class="o">*</span><span class="n">params</span><span class="p">,</span>
+                    <span class="n">optimizations</span><span class="o">=</span><span class="n">optimizations</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">Dpz</span> <span class="o">=</span> <span class="p">[</span><span class="n">Dpz</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">zlen</span><span class="p">,</span> <span class="n">plen</span><span class="p">))</span> <span class="k">for</span> <span class="p">(</span><span class="n">Dpz</span><span class="p">,</span> <span class="n">plen</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Dpz</span><span class="p">,</span> <span class="n">plen</span><span class="p">)]</span>
+
+            <span class="c1"># compute the 2nd order derivatives consisting of 4 terms</span>
+            <span class="n">Dpp1</span> <span class="o">=</span> <span class="n">HESSIAN_DIAG</span><span class="p">(</span><span class="k">lambda</span> <span class="o">*</span><span class="n">params</span><span class="p">:</span> <span class="n">fn</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">))(</span><span class="o">*</span><span class="n">params</span><span class="p">)</span>
+            <span class="n">Dpp1</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">Dpp1</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">plen</span><span class="p">,</span> <span class="n">plen</span><span class="p">))</span> <span class="k">for</span> <span class="p">(</span><span class="n">Dpp1</span><span class="p">,</span> <span class="n">plen</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Dpp1</span><span class="p">,</span> <span class="n">plen</span><span class="p">)</span>
+            <span class="p">]</span>
+
+            <span class="n">temp</span> <span class="o">=</span> <span class="n">JACOBIAN</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="o">*</span><span class="n">params</span><span class="p">:</span> <span class="n">JACOBIAN</span><span class="p">(</span><span class="n">fn</span><span class="p">)(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">),</span>
+                <span class="n">argnums</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)),</span>
+            <span class="p">)(</span><span class="o">*</span><span class="n">params</span><span class="p">)</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">jaxm</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">temp</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">zlen</span><span class="p">,</span> <span class="n">plen</span><span class="p">)))</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">plen</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">plen</span><span class="p">)</span>
+            <span class="p">]</span>
+            <span class="n">Dpp2</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="p">(</span><span class="n">temp</span> <span class="o">@</span> <span class="n">Dpz</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">plen</span><span class="p">,</span> <span class="n">plen</span><span class="p">))</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">Dpz</span><span class="p">,</span> <span class="n">plen</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">Dpz</span><span class="p">,</span> <span class="n">plen</span><span class="p">)</span>
+            <span class="p">]</span>
+            <span class="n">Dpp3</span> <span class="o">=</span> <span class="p">[</span><span class="n">jaxm</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">Dpp2</span><span class="p">)</span> <span class="k">for</span> <span class="n">Dpp2</span> <span class="ow">in</span> <span class="n">Dpp2</span><span class="p">]</span>
+            <span class="n">Dzz</span> <span class="o">=</span> <span class="n">HESSIAN</span><span class="p">(</span><span class="k">lambda</span> <span class="n">z</span><span class="p">:</span> <span class="n">fn</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">))(</span><span class="n">z</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">zlen</span><span class="p">,</span> <span class="n">zlen</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">Hg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">Dpp4</span> <span class="o">=</span> <span class="p">[</span><span class="n">jaxm</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">Dpz</span><span class="p">)</span> <span class="o">@</span> <span class="p">(</span><span class="n">Hg_</span> <span class="o">+</span> <span class="n">Dzz</span><span class="p">)</span> <span class="o">@</span> <span class="n">Dpz</span> <span class="k">for</span> <span class="n">Dpz</span> <span class="ow">in</span> <span class="n">Dpz</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">Dpp4</span> <span class="o">=</span> <span class="p">[</span><span class="n">jaxm</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">Dpz</span><span class="p">)</span> <span class="o">@</span> <span class="n">Dzz</span> <span class="o">@</span> <span class="n">Dpz</span> <span class="k">for</span> <span class="n">Dpz</span> <span class="ow">in</span> <span class="n">Dpz</span><span class="p">]</span>
+            <span class="n">Dp</span> <span class="o">=</span> <span class="p">[</span><span class="n">Dg_</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">zlen</span><span class="p">))</span> <span class="o">@</span> <span class="n">Dpz</span> <span class="k">for</span> <span class="n">Dpz</span> <span class="ow">in</span> <span class="n">Dpz</span><span class="p">]</span>
+            <span class="n">Dpp</span> <span class="o">=</span> <span class="p">[</span><span class="nb">sum</span><span class="p">(</span><span class="n">Dpp</span><span class="p">)</span> <span class="k">for</span> <span class="n">Dpp</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Dpp1</span><span class="p">,</span> <span class="n">Dpp2</span><span class="p">,</span> <span class="n">Dpp3</span><span class="p">,</span> <span class="n">Dpp4</span><span class="p">)]</span>
+
+            <span class="c1"># return the results</span>
+            <span class="n">Dp_shaped</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">Dp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">Dp</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Dp</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+            <span class="p">]</span>
+            <span class="n">Dpp_shaped</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">Dpp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> <span class="n">param</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">Dpp</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Dpp</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+            <span class="p">]</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">Dp_shaped</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Dpp_shaped</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+            <span class="k">else</span> <span class="p">(</span><span class="n">Dp_shaped</span><span class="p">,</span> <span class="n">Dpp_shaped</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">Dpz</span><span class="p">,</span> <span class="n">optimizations</span> <span class="o">=</span> <span class="n">implicit_jacobian</span><span class="p">(</span>
+            <span class="n">k_fn</span><span class="p">,</span>
+            <span class="n">z</span><span class="p">,</span>
+            <span class="o">*</span><span class="n">params</span><span class="p">,</span>
+            <span class="n">full_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">optimizations</span><span class="o">=</span><span class="n">optimizations</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">Dpz</span> <span class="o">=</span> <span class="n">_ensure_list</span><span class="p">(</span><span class="n">Dpz</span><span class="p">)</span>
+        <span class="n">Dpz</span> <span class="o">=</span> <span class="p">[</span><span class="n">Dpz</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">zlen</span><span class="p">,</span> <span class="n">plen</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">Dpz</span><span class="p">,</span> <span class="n">plen</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Dpz</span><span class="p">,</span> <span class="n">plen</span><span class="p">)]</span>
+
+        <span class="c1"># compute derivatives</span>
+        <span class="k">if</span> <span class="n">optimizations</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Dzzk&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">Hk</span> <span class="o">=</span> <span class="n">HESSIAN_DIAG</span><span class="p">(</span><span class="n">k_fn</span><span class="p">)(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">)</span>
+            <span class="n">Dzzk</span><span class="p">,</span> <span class="n">Dppk</span> <span class="o">=</span> <span class="n">Hk</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Hk</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+            <span class="n">optimizations</span><span class="p">[</span><span class="s2">&quot;Dzzk&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Dzzk</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Dppk</span> <span class="o">=</span> <span class="n">HESSIAN_DIAG</span><span class="p">(</span><span class="k">lambda</span> <span class="o">*</span><span class="n">params</span><span class="p">:</span> <span class="n">k_fn</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">))(</span><span class="o">*</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">Dzpk</span> <span class="o">=</span> <span class="n">JACOBIAN</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="o">*</span><span class="n">params</span><span class="p">:</span> <span class="n">JACOBIAN</span><span class="p">(</span><span class="n">k_fn</span><span class="p">)(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">),</span>
+            <span class="n">argnums</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)),</span>
+        <span class="p">)(</span><span class="o">*</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">Dppk</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">Dppk</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">zlen</span><span class="p">,</span> <span class="n">plen</span><span class="p">,</span> <span class="n">plen</span><span class="p">))</span> <span class="k">for</span> <span class="p">(</span><span class="n">Dppk</span><span class="p">,</span> <span class="n">plen</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Dppk</span><span class="p">,</span> <span class="n">plen</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">Dzzk</span> <span class="o">=</span> <span class="n">Dzzk</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">zlen</span><span class="p">,</span> <span class="n">zlen</span><span class="p">,</span> <span class="n">zlen</span><span class="p">))</span>
+        <span class="n">Dzpk</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">Dzpk</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">zlen</span><span class="p">,</span> <span class="n">zlen</span><span class="p">,</span> <span class="n">plen</span><span class="p">))</span> <span class="k">for</span> <span class="p">(</span><span class="n">Dzpk</span><span class="p">,</span> <span class="n">plen</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Dzpk</span><span class="p">,</span> <span class="n">plen</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">Dpzk</span> <span class="o">=</span> <span class="p">[</span><span class="n">jaxm</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">Dzpk</span><span class="p">)</span> <span class="k">for</span> <span class="n">Dzpk</span> <span class="ow">in</span> <span class="n">Dzpk</span><span class="p">]</span>
+
+        <span class="c1"># solve the IFT equation</span>
+        <span class="n">lhs</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">Dppk</span>
+            <span class="o">+</span> <span class="n">Dpzk</span> <span class="o">@</span> <span class="n">Dpz</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+            <span class="o">+</span> <span class="n">jaxm</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">Dpz</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">@</span> <span class="n">Dzpk</span>
+            <span class="o">+</span> <span class="p">(</span><span class="n">jaxm</span><span class="o">.</span><span class="n">t</span><span class="p">(</span><span class="n">Dpz</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">@</span> <span class="n">Dzzk</span><span class="p">)</span> <span class="o">@</span> <span class="n">Dpz</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">Dpz</span><span class="p">,</span> <span class="n">Dzpk</span><span class="p">,</span> <span class="n">Dpzk</span><span class="p">,</span> <span class="n">Dppk</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Dpz</span><span class="p">,</span> <span class="n">Dzpk</span><span class="p">,</span> <span class="n">Dpzk</span><span class="p">,</span> <span class="n">Dppk</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">Dzk_solve_fn</span> <span class="o">=</span> <span class="n">optimizations</span><span class="p">[</span><span class="s2">&quot;Dzk_solve_fn&quot;</span><span class="p">]</span>
+        <span class="n">Dppz</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="o">-</span><span class="n">Dzk_solve_fn</span><span class="p">(</span>
+                <span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">,</span> <span class="n">rhs</span><span class="o">=</span><span class="n">lhs</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">zlen</span><span class="p">,</span> <span class="n">plen</span> <span class="o">*</span> <span class="n">plen</span><span class="p">)),</span> <span class="n">T</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">zlen</span><span class="p">,</span> <span class="n">plen</span><span class="p">,</span> <span class="n">plen</span><span class="p">))</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">lhs</span><span class="p">,</span> <span class="n">plen</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lhs</span><span class="p">,</span> <span class="n">plen</span><span class="p">)</span>
+        <span class="p">]</span>
+
+        <span class="c1"># return computed values</span>
+        <span class="n">Dpz_shaped</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">Dpz</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> <span class="n">param</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">Dpz</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Dpz</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="n">Dppz_shaped</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">Dppz</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> <span class="n">param</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> <span class="n">param</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">Dppz</span><span class="p">,</span> <span class="n">param</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Dppz</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">Dpz_shaped</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Dppz_shaped</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+            <span class="k">else</span> <span class="p">(</span><span class="n">Dpz_shaped</span><span class="p">,</span> <span class="n">Dppz_shaped</span><span class="p">)</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="generate_optimization_fns"><a class="viewcode-back" href="../../sensitivity_jax.sensitivity.html#sensitivity_jax.sensitivity.generate_optimization_fns">[docs]</a><span class="k">def</span> <span class="nf">generate_optimization_fns</span><span class="p">(</span>
+    <span class="n">loss_fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+    <span class="n">opt_fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+    <span class="n">k_fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
+    <span class="n">normalize_grad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">optimizations</span><span class="p">:</span> <span class="n">Mapping</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">jit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Directly generates upper/outer bilevel program derivative functions.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        loss_fn: loss_fn(z, *params), upper/outer level loss</span>
+<span class="sd">        opt_fn: opt_fn(*params) = z, lower/inner argmin function</span>
+<span class="sd">        k_fn: k_fn(z, *params) = 0, lower/inner implicit function</span>
+<span class="sd">        normalize_grad: whether to normalize the gradient by its norm</span>
+<span class="sd">        jit: whether to apply just-in-time (jit) compilation to the functions</span>
+<span class="sd">    Returns:</span>
+<span class="sd">        ``f_fn(*params), g_fn(*params), h_fn(*params)``</span>
+<span class="sd">        parameters-only upper/outer level loss, gradient and Hessian.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sol_cache</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">optimizations</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">optimizations</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">copy</span><span class="p">(</span><span class="n">optimizations</span><span class="p">)</span>
+
+    <span class="nd">@fn_with_sol_cache</span><span class="p">(</span><span class="n">opt_fn</span><span class="p">,</span> <span class="n">sol_cache</span><span class="p">,</span> <span class="n">jit</span><span class="o">=</span><span class="n">jit</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">f_fn</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">loss_fn</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">)</span>
+
+    <span class="nd">@fn_with_sol_cache</span><span class="p">(</span><span class="n">opt_fn</span><span class="p">,</span> <span class="n">sol_cache</span><span class="p">,</span> <span class="n">jit</span><span class="o">=</span><span class="n">jit</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">g_fn</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">):</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">JACOBIAN</span><span class="p">(</span><span class="n">loss_fn</span><span class="p">,</span> <span class="n">argnums</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">Dp</span> <span class="o">=</span> <span class="n">implicit_jacobian</span><span class="p">(</span>
+            <span class="n">k_fn</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">,</span> <span class="n">Dg</span><span class="o">=</span><span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">optimizations</span><span class="o">=</span><span class="n">optimizations</span>
+        <span class="p">)</span>
+        <span class="n">Dp</span> <span class="o">=</span> <span class="n">Dp</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="k">else</span> <span class="p">[</span><span class="n">Dp</span><span class="p">]</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="p">[</span><span class="n">Dp</span> <span class="o">+</span> <span class="n">g</span> <span class="k">for</span> <span class="p">(</span><span class="n">Dp</span><span class="p">,</span> <span class="n">g</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Dp</span><span class="p">,</span> <span class="n">g</span><span class="p">[</span><span class="mi">1</span><span class="p">:])]</span>
+        <span class="k">if</span> <span class="n">normalize_grad</span><span class="p">:</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="p">[(</span><span class="n">z</span> <span class="o">/</span> <span class="p">(</span><span class="n">jaxm</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-7</span><span class="p">))</span> <span class="k">for</span> <span class="n">z</span> <span class="ow">in</span> <span class="n">ret</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">ret</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">ret</span>
+
+    <span class="nd">@fn_with_sol_cache</span><span class="p">(</span><span class="n">opt_fn</span><span class="p">,</span> <span class="n">sol_cache</span><span class="p">,</span> <span class="n">jit</span><span class="o">=</span><span class="n">jit</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">h_fn</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">):</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="n">JACOBIAN</span><span class="p">(</span><span class="n">loss_fn</span><span class="p">,</span> <span class="n">argnums</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">optimizations</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Hz_fn&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">optimizations</span><span class="p">[</span><span class="s2">&quot;Hz_fn&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">jaxm</span><span class="o">.</span><span class="n">hessian</span><span class="p">(</span><span class="n">loss_fn</span><span class="p">)</span>
+        <span class="n">Hz_fn</span> <span class="o">=</span> <span class="n">optimizations</span><span class="p">[</span><span class="s2">&quot;Hz_fn&quot;</span><span class="p">]</span>
+        <span class="n">Hz</span> <span class="o">=</span> <span class="n">Hz_fn</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">)</span>
+        <span class="n">H</span> <span class="o">=</span> <span class="p">[</span><span class="n">Hz</span><span class="p">]</span> <span class="o">+</span> <span class="n">HESSIAN_DIAG</span><span class="p">(</span><span class="k">lambda</span> <span class="o">*</span><span class="n">params</span><span class="p">:</span> <span class="n">loss_fn</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">))(</span><span class="o">*</span><span class="n">params</span><span class="p">)</span>
+
+        <span class="n">_</span><span class="p">,</span> <span class="n">Dpp</span> <span class="o">=</span> <span class="n">implicit_hessian</span><span class="p">(</span>
+            <span class="n">k_fn</span><span class="p">,</span>
+            <span class="n">z</span><span class="p">,</span>
+            <span class="o">*</span><span class="n">params</span><span class="p">,</span>
+            <span class="n">Dg</span><span class="o">=</span><span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">Hg</span><span class="o">=</span><span class="n">H</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">optimizations</span><span class="o">=</span><span class="n">optimizations</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">Dpp</span> <span class="o">=</span> <span class="n">Dpp</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span> <span class="k">else</span> <span class="p">[</span><span class="n">Dpp</span><span class="p">]</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="p">[</span><span class="n">Dpp</span> <span class="o">+</span> <span class="n">H</span> <span class="k">for</span> <span class="p">(</span><span class="n">Dpp</span><span class="p">,</span> <span class="n">H</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Dpp</span><span class="p">,</span> <span class="n">H</span><span class="p">[</span><span class="mi">1</span><span class="p">:])]</span>
+        <span class="k">return</span> <span class="n">ret</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">ret</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">f_fn</span><span class="p">,</span> <span class="n">g_fn</span><span class="p">,</span> <span class="n">h_fn</span><span class="p">)</span></div>
+</pre></div>
+
+              </div>
+              
+            
+                <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+</div>
+            
+        </div>
+    </div>
+    <footer class="footer">
+  <p>
+    
+      By Robert Dyro<br/>
+    
+        &copy; Copyright 2022, Robert Dyro.<br/>
+  </p>
+</footer>
+</main>
+
+
+      </div>
+    </div>
+  
+  <script src="../../_static/js/index.be7d3bbb2ef33a8344ce.js"></script>
+
+  </body>
+</html>
