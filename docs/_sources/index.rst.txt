@@ -14,6 +14,12 @@ Optimization Sensitivity in JAX - Reference Documentation - First- and Second-or
 **second-order** derivatives through optimization or any other fixed-point
 process.
 
+Source code for this package is located `here: github.com/rdyro/sensitivity_jax <https://github.com/rdyro/sensitivity_jax>`_.
+
+This package builds on top of `JAX <https://github.com/google/jax>`_. We also
+maintain an implementation in `PyTorch <https://pytorch.org/>`_
+`here <https://rdyro.github.io/sensitivity_torch/>`_.
+
 .. toctree::
    :maxdepth: 2
    :caption: Getting Started

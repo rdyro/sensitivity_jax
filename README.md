@@ -4,6 +4,10 @@
 **second-order** derivatives through optimization or any other fixed-point
 process.
 
+This package builds on top of [JAX](https://github.com/google/jax). We also
+maintain an implementation in [PyTorch](https://pytorch.org/)
+[here](.https://rdyro.github.io/sensitivity_torch/).
+
 ## Documentation
 
 [Documentation can be found here.](https://rdyro.github.io/sensitivity_jax/)

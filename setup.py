@@ -16,7 +16,7 @@ setup(
     version="0.3.0",
     author="Robert Dyro",
     description=(
-        "Second Order Sensitivity Analysis for Bilevel Programming for JAX"
+        "Optimization Sensitivity Analysis for Bilevel Programming for JAX"
     ),
     license="MIT",
     packages=["sensitivity_jax", "sensitivity_jax.extras"],
