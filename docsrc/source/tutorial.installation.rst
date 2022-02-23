@@ -1,14 +1,14 @@
 Installation
 ============
 
-Install from source
+Install using pip
+::
+  $ pip install --user git+https://github.com/rdyro/sensitivity_jax.git
+or from source
 ::
   $ git clone git@github.com:rdyro/sensitivity_jax.git
   $ cd sensitivity_jax
   $ python3 setup.py install --user
-or using pip
-::
-  $ pip install git+git@github.com:rdyro/sensitivity_jax.git
 
 Testing
 -------

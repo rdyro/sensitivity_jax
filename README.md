@@ -16,6 +16,10 @@ maintain an implementation in [PyTorch](https://pytorch.org/)
 
 Install from source
 ```bash
+$ pip install git+https://github.com/rdyro/sensitivity_jax.git
+```
+or
+```bash
 $ git clone git@github.com:rdyro/sensitivity_jax.git
 $ cd sensitivity_jax
 $ python3 setup.py install --user
