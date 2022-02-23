@@ -3,7 +3,7 @@ Installation
 
 Install using pip
 ::
-  $ pip install --user git+https://github.com/rdyro/sensitivity_jax.git
+  $ pip install git+https://github.com/rdyro/sensitivity_jax.git
 or from source
 ::
   $ git clone git@github.com:rdyro/sensitivity_jax.git
