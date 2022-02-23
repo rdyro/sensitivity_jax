@@ -20,6 +20,6 @@ setup(
     ),
     license="MIT",
     packages=["sensitivity_jax", "sensitivity_jax.extras"],
-    #install_requires=["jax", "numpy", "tqdm"],
+    install_requires=["jax", "torch", "tensorboard", "numpy", "scipy", "tqdm"],
     long_description=read("README.md"),
 )
