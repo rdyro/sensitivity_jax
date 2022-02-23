@@ -14,11 +14,11 @@ maintain an implementation in [PyTorch](https://pytorch.org/)
 
 ## Installation
 
-Install from source
+Install using pip
 ```bash
 $ pip install git+https://github.com/rdyro/sensitivity_jax.git
 ```
-or
+or from source
 ```bash
 $ git clone git@github.com:rdyro/sensitivity_jax.git
 $ cd sensitivity_jax
