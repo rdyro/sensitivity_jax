@@ -27,15 +27,17 @@ class DpzTest(unittest.TestCase):
         g = OPT.grad(W, X, Y, *params)
         self.assertTrue(jaxm.norm(g) < 1e-5)
 
+        eps = max(jaxm.finfo(g.dtype).resolution, 1e-9)
+
         # gradient quality
         g_ = jaxm.grad(OPT.fval)(W, X, Y, *params)
         err = jaxm.norm(g_ - g)
-        self.assertTrue(err < 1e-9)
+        self.assertTrue(err < eps)
 
         # hessian quality
         H = OPT.hess(W, X, Y, *params)
         err = jaxm.norm(jaxm.jacobian(OPT.grad)(W, X, Y, *params) - H)
-        self.assertTrue(err < 1e-9)
+        self.assertTrue(err < eps)
 
         # Dzk_solve
         H = OPT.hess(W, X, Y, *params).reshape((W.size, W.size))
@@ -44,12 +46,12 @@ class DpzTest(unittest.TestCase):
             jaxm.linalg.solve(H, rhs)
             - OPT.Dzk_solve(W, X, Y, *params, rhs=rhs, T=False)
         )
-        self.assertTrue(err < 1e-9)
+        self.assertTrue(err < eps)
         err = jaxm.norm(
             jaxm.linalg.solve(jaxm.t(H), rhs)
             - OPT.Dzk_solve(W, X, Y, *params, rhs=rhs, T=True)
         )
-        self.assertTrue(err < 1e-9)
+        self.assertTrue(err < eps)
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

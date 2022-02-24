@@ -28,6 +28,7 @@ setup(
         "numpy",
         "scipy",
         "tqdm",
+        "matplotlib",
     ],
     long_description=read("README.md"),
 )

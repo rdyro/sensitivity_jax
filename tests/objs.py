@@ -91,7 +91,7 @@ class LS(OBJ):
 
 
 class CE(OBJ):
-    def __init__(self, max_it=8, verbose=False, method=""):
+    def __init__(self, max_it=8, verbose=False, method="sqp"):
         self.max_it, self.verbose, self.method = max_it, verbose, method
 
     @staticmethod
@@ -128,8 +128,10 @@ class CE(OBJ):
 
             W = LS().solve(X, Y_ls, lam)[..., :-1]
             kw = dict(max_it=self.max_it, verbose=self.verbose)
-            W = minimize_lbfgs(f_fn, g_fn, W, lr=1e-1, **kw)
-            # W = minimize_sqp(f_fn, g_fn, h_fn, W, max_it=1, verbose=False)
+            if self.method == "sqp":
+                W = minimize_sqp(f_fn, g_fn, h_fn, W, **kw)
+            else:
+                W = minimize_lbfgs(f_fn, g_fn, W, lr=1e-1, **kw)
         return W
 
     @staticmethod
