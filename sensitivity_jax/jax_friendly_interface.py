@@ -1,10 +1,10 @@
-import math, pdb, os, sys, time
-from functools import partial
+import pdb, os, time
 
 import numpy as np
 
 jaxm = None
 jax, jnp, jsp, jrandom = None, None, None, None
+key = None
 
 
 def manual_seed(val):
@@ -16,7 +16,7 @@ def manual_seed(val):
 def init(device=None, dtype=None, seed=None):
     if dtype is not None:
         os.environ["JAX_ENABLE_X64"] = str(
-            dtype == np.float64 or dtype == float or dtype == "float64"
+            dtype in [np.float64, float, "float64", "f64", "double"]
         )
     if device is not None:
         if isinstance(device, str) and (
@@ -44,6 +44,7 @@ def init(device=None, dtype=None, seed=None):
     jaxm.jvp, jaxm.vjp = jax.jvp, jax.vjp
     jaxm.hessian = jax.hessian
     jaxm.jit = jax.jit
+    jaxm.vmap = jax.vmap
 
     # binding random numbers
     global key
@@ -91,8 +92,6 @@ def init(device=None, dtype=None, seed=None):
 
 
 if __name__ == "__main__":
-    load_jax(device="cpu", dtype=np.float32)
+    init(device="cpu", dtype=np.float32)
     d = jax.randn((10,))
     print(d.dtype, d.device())
-
-    pdb.set_trace()

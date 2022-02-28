@@ -54,7 +54,7 @@ class OBJ:
         if T:
             H = jaxm.t(H)
         rhs_ = rhs.reshape((H.shape[-1], -1))
-        return jaxm.linalg.solve(H, rhs).reshape(rhs.shape)
+        return jaxm.linalg.solve(H, rhs_).reshape(rhs.shape)
 
 
 class LS(OBJ):
@@ -140,7 +140,7 @@ class CE(OBJ):
         Yp_aug = CE._Yp_aug(W, X)
         return (
             -jaxm.sum(Y[..., :-1] * Yp)
-            + jaxm.sum(jaxm.scipy.special.logsumexp(Yp_aug, 1))
+            + jaxm.sum(jaxm.scipy.special.logsumexp(Yp_aug, -1))
         ) / X.shape[-2] + 0.5 * jaxm.sum((10.0 ** lam) * (W ** 2))
 
 

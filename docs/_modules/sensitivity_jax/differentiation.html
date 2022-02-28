@@ -192,10 +192,7 @@
               <div>
                 
   <h1>Source code for sensitivity_jax.differentiation</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">functools</span><span class="o">,</span> <span class="nn">operator</span><span class="o">,</span> <span class="nn">pdb</span>
-<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
-
-<span class="kn">from</span> <span class="nn">.jax_friendly_interface</span> <span class="kn">import</span> <span class="n">init</span>
+<span></span><span class="kn">from</span> <span class="nn">.jax_friendly_interface</span> <span class="kn">import</span> <span class="n">init</span>
 
 <span class="n">jaxm</span> <span class="o">=</span> <span class="n">init</span><span class="p">()</span>
 
@@ -207,12 +204,9 @@
 
 <div class="viewcode-block" id="HESSIAN_DIAG"><a class="viewcode-back" href="../../sensitivity_jax.differentiation.html#sensitivity_jax.differentiation.HESSIAN_DIAG">[docs]</a><span class="k">def</span> <span class="nf">HESSIAN_DIAG</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Generates a function which computes per-argument partial Hessians.&quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="nf">h_fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="p">(</span><span class="n">args</span><span class="p">,)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span>
-            <span class="k">else</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-        <span class="p">)</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">args</span><span class="p">,)</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">))</span> <span class="k">else</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">jaxm</span><span class="o">.</span><span class="n">hessian</span><span class="p">(</span>
                 <span class="k">lambda</span> <span class="n">arg</span><span class="p">:</span> <span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">[:</span><span class="n">i</span><span class="p">],</span> <span class="n">arg</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>

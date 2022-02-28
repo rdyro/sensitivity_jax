@@ -1,6 +1,3 @@
-import functools, operator, pdb
-from tqdm import tqdm
-
 from .jax_friendly_interface import init
 
 jaxm = init()
@@ -13,12 +10,9 @@ HESSIAN.__doc__ = """Equivalent to jax.hessian."""
 
 def HESSIAN_DIAG(fn):
     """Generates a function which computes per-argument partial Hessians."""
+
     def h_fn(*args, **kwargs):
-        args = (
-            (args,)
-            if not (isinstance(args, list) or isinstance(args, tuple))
-            else tuple(args)
-        )
+        args = (args,) if not isinstance(args, (tuple, list)) else tuple(args)
         ret = [
             jaxm.hessian(
                 lambda arg: fn(*args[:i], arg, *args[i + 1 :], **kwargs)
