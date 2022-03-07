@@ -1,3 +1,4 @@
+import pdb
 from typing import Callable, Mapping, Sequence, Union
 from copy import copy
 
@@ -17,9 +18,7 @@ from .specialized_matrix_inverse import solve_gmres  # , solve_cg
 DeviceArray = jaxm.DeviceArray
 
 
-def _generate_default_Dzk_solve_fn(
-    optimizations: Mapping, k_fn: Callable
-) -> Callable:
+def _generate_default_Dzk_solve_fn(optimizations: Mapping, k_fn: Callable):
     """Generates the default Dzk (embedding Hessian) solution function A x = y
 
     Args:
@@ -60,6 +59,7 @@ def implicit_jacobian(
     k_fn: Callable,
     z: DeviceArray,
     *params: DeviceArray,
+    nondiff_kw: Mapping = None,
     Dg: DeviceArray = None,
     jvp_vec: Union[DeviceArray, Sequence[DeviceArray]] = None,
     matrix_free_inverse: bool = False,
@@ -72,6 +72,7 @@ def implicit_jacobian(
         k_fn: k_fn(z, *params) = 0, lower/inner implicit function
         z: the optimal embedding variable value array
         *params: the parameters p of the bilevel program
+        nondiff_kw: nondifferentiable parameters to the implicit function
         Dg: left sensitivity vector (wrt z), for a VJP
         jvp_vec: right sensitivity vector(s) (wrt p) for a JVP
         matrix_free_inverse: whether to use approximate matrix inversion
@@ -86,35 +87,43 @@ def implicit_jacobian(
 
     jvp_vec = _ensure_list(jvp_vec) if jvp_vec is not None else jvp_vec
 
+    if nondiff_kw is not None:
+        k_fn_ = lambda z, *params: k_fn(z, *params, **nondiff_kw)
+    else:
+        k_fn_ = k_fn
+
     # construct a default Dzk_solve_fn ##########################
     if optimizations.get("Dzk_solve_fn", None) is None:
-        _generate_default_Dzk_solve_fn(optimizations, k_fn)
+        _generate_default_Dzk_solve_fn(optimizations, k_fn_)
     #############################################################
 
     if Dg is not None:
         if matrix_free_inverse:
             A_fn = lambda x: JACOBIAN(
-                lambda z: jaxm.sum(k_fn(z, *params).reshape(-1) * x.reshape(-1))
+                lambda z: jaxm.sum(
+                    k_fn_(z, *params).reshape(-1) * x.reshape(-1)
+                )
             )(z).reshape(x.shape)
             v = -solve_gmres(A_fn, Dg.reshape((zlen, 1)), max_it=300)
         else:
             Dzk_solve_fn = optimizations["Dzk_solve_fn"]
             v = -Dzk_solve_fn(z, *params, rhs=Dg.reshape((zlen, 1)), T=True)
         fn = lambda *params: jaxm.sum(
-            v.reshape(zlen) * k_fn(z, *params).reshape(zlen)
+            v.reshape(zlen) * k_fn_(z, *params).reshape(zlen)
         )
         Dp = JACOBIAN(fn, argnums=range(len(params)))(*params)
         Dp_shaped = [Dp.reshape(param.shape) for (Dp, param) in zip(Dp, params)]
         ret = Dp_shaped[0] if len(params) == 1 else Dp_shaped
     else:
         if jvp_vec is not None:
-            fn = lambda *params: k_fn(z, *params)
+            fn = lambda *params: k_fn_(z, *params)
             Dp = _ensure_list(jaxm.jvp(fn, params, tuple(jvp_vec))[1])
             Dp = [Dp.reshape((zlen, 1)) for (Dp, plen) in zip(Dp, plen)]
             Dpk = Dp
         else:
             Dpk = JACOBIAN(
-                lambda *params: k_fn(z, *params), argnums=range(len(params))
+                lambda *params: k_fn_(z, *params),
+                argnums=range(len(params)),
             )(*params)
             Dpk = [Dpk.reshape((zlen, plen)) for (Dpk, plen) in zip(Dpk, plen)]
 
@@ -136,6 +145,7 @@ def implicit_hessian(
     k_fn: Callable,
     z: DeviceArray,
     *params: DeviceArray,
+    nondiff_kw: Mapping = None,
     Dg: DeviceArray = None,
     Hg: DeviceArray = None,
     jvp_vec: Union[DeviceArray, Sequence[DeviceArray]] = None,
@@ -147,6 +157,7 @@ def implicit_hessian(
         k_fn: k_fn(z, *params) = 0, lower/inner implicit function
         z: the optimal embedding variable value array
         *params: the parameters p of the bilevel program
+        nondiff_kw: nondifferentiable parameters to the implicit function
         Dg: gradient sensitivity vector (wrt z), for chain rule
         Hg: Hessian sensitivity vector (wrt z), for chain rule
         jvp_vec: right sensitivity vector(s) (wrt p) for Hessian-vector-product
@@ -155,14 +166,21 @@ def implicit_hessian(
         Hessian/chain rule Hessian as specified by arguments
     """
     optimizations = {} if optimizations is None else copy(optimizations)
+    nondiff_kw = {} if nondiff_kw is None else nondiff_kw
+
     zlen, plen = prod(z.shape), [prod(param.shape) for param in params]
     jvp_vec = _ensure_list(jvp_vec) if jvp_vec is not None else jvp_vec
     if jvp_vec is not None:
         assert Dg is not None
 
+    if nondiff_kw is not None:
+        k_fn_ = lambda z, *params: k_fn(z, *params, **nondiff_kw)
+    else:
+        k_fn_ = k_fn
+
     # construct a default Dzk_solve_fn ##########################
     if optimizations.get("Dzk_solve_fn", None) is None:
-        _generate_default_Dzk_solve_fn(optimizations, k_fn)
+        _generate_default_Dzk_solve_fn(optimizations, k_fn_)
     #############################################################
 
     # compute 2nd implicit gradients
@@ -177,7 +195,7 @@ def implicit_hessian(
         Dzk_solve_fn = optimizations["Dzk_solve_fn"]
         v = -Dzk_solve_fn(z, *params, rhs=Dg_.reshape((zlen, 1)), T=True)
         fn = lambda z, *params: jaxm.sum(
-            v.reshape(zlen) * k_fn(z, *params).reshape(zlen)
+            v.reshape(zlen) * k_fn_(z, *params).reshape(zlen)
         )
 
         if jvp_vec is not None:
@@ -186,6 +204,7 @@ def implicit_hessian(
                     k_fn,
                     z,
                     *params,
+                    nondiff_kw=nondiff_kw,
                     jvp_vec=jvp_vec,
                     optimizations=optimizations,
                 )
@@ -224,6 +243,7 @@ def implicit_hessian(
                         k_fn,
                         z,
                         *params,
+                        nondiff_kw=nondiff_kw,
                         Dg=g_,
                         optimizations=optimizations,
                     )
@@ -252,6 +272,7 @@ def implicit_hessian(
                         z,
                         *params,
                         Dg=g_,
+                        nondiff_kw=nondiff_kw,
                         optimizations=optimizations,
                     )
                 )[i].reshape(plen)
@@ -275,6 +296,7 @@ def implicit_hessian(
                     k_fn,
                     z,
                     *params,
+                    nondiff_kw=nondiff_kw,
                     optimizations=optimizations,
                 )
             )
@@ -325,6 +347,7 @@ def implicit_hessian(
             k_fn,
             z,
             *params,
+            nondiff_kw=nondiff_kw,
             full_output=True,
             optimizations=optimizations,
         )
@@ -333,13 +356,15 @@ def implicit_hessian(
 
         # compute derivatives
         if optimizations.get("Dzzk", None) is None:
-            Hk = HESSIAN_DIAG(k_fn)(z, *params)
+            Hk = HESSIAN_DIAG(k_fn_)(z, *params)
             Dzzk, Dppk = Hk[0], Hk[1:]
             optimizations["Dzzk"] = Dzzk
         else:
-            Dppk = HESSIAN_DIAG(lambda *params: k_fn(z, *params))(*params)
+            Dppk = HESSIAN_DIAG(lambda *params: k_fn_(z, *params))(
+                *params
+            )
         Dzpk = JACOBIAN(
-            lambda *params: JACOBIAN(k_fn)(z, *params),
+            lambda *params: JACOBIAN(k_fn_)(z, *params),
             argnums=range(len(params)),
         )(*params)
         Dppk = [
@@ -411,10 +436,15 @@ def generate_optimization_fns(
         return loss_fn(z, *params)
 
     @fn_with_sol_cache(opt_fn, sol_cache, jit=jit)
-    def g_fn(z, *params):
+    def g_fn(z, *params, **nondiff_kw):
         g = JACOBIAN(loss_fn, argnums=range(len(params) + 1))(z, *params)
         Dp = implicit_jacobian(
-            k_fn, z, *params, Dg=g[0], optimizations=optimizations
+            k_fn,
+            z,
+            *params,
+            nondiff_kw=None if len(nondiff_kw) == 0 else nondiff_kw,
+            Dg=g[0],
+            optimizations=optimizations,
         )
         Dp = Dp if len(params) != 1 else [Dp]
         ret = [Dp + g for (Dp, g) in zip(Dp, g[1:])]
@@ -423,7 +453,7 @@ def generate_optimization_fns(
         return ret[0] if len(ret) == 1 else ret
 
     @fn_with_sol_cache(opt_fn, sol_cache, jit=jit)
-    def h_fn(z, *params):
+    def h_fn(z, *params, **nondiff_kw):
         g = JACOBIAN(loss_fn, argnums=range(len(params) + 1))(z, *params)
 
         if optimizations.get("Hz_fn", None) is None:
@@ -436,6 +466,7 @@ def generate_optimization_fns(
             k_fn,
             z,
             *params,
+            nondiff_kw=None if len(nondiff_kw) == 0 else nondiff_kw,
             Dg=g[0],
             Hg=H[0],
             optimizations=optimizations,

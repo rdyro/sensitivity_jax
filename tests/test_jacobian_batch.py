@@ -13,10 +13,7 @@ from sensitivity_jax.jax_friendly_interface import init
 jaxm = init()
 ################################################################################
 
-# from sensitivity_jax.sensitivity_batch import implicit_jacobian
-from sensitivity_jax.sensitivity_batch import (
-    implicit_jacobian2 as implicit_jacobian,
-)
+from sensitivity_jax.batch_sensitivity import implicit_jacobian
 from sensitivity_jax.sensitivity import implicit_jacobian as implicit_jacobian_
 import objs
 
@@ -28,6 +25,7 @@ lam = 1e-3
 blen = 2
 p = jaxm.randn((blen, 3, 6))
 W = OPT.solve(X @ p, Y, lam)
+prod = lambda x: reduce(mul, x, 1)
 
 # we test here 1st order implicit gradients
 class DpzTest(unittest.TestCase):
@@ -57,7 +55,6 @@ class DpzTest(unittest.TestCase):
         self.assertTrue(err_Dpz3 < eps)
 
     def test_batch_jacobian_with_Dg(self):
-        prod = lambda x: reduce(mul, x, 1)
         k_fn = lambda W, p: OPT.grad(W, X @ p, Y, lam)
         Dzk_solve_fn = lambda W, p, rhs=None, T=False: OPT.Dzk_solve(
             W, X @ p, Y, lam, rhs=rhs, T=T

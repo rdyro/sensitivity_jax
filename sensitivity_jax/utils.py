@@ -15,6 +15,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 ##$#############################################################################
 ##^# general utils #############################################################
+bmv = lambda A, x: (A @ x[..., None])[..., 0]
 vec = lambda x: x.reshape(-1)
 identity = lambda x: x
 is_equal = (
@@ -155,7 +156,7 @@ def to_tuple_(arg):
     if isinstance(arg, np.ndarray):
         return arg.tobytes()
     elif isinstance(arg, jaxm.DeviceArray):
-        return to_tuple_(np.array(arg))
+        return arg.tobytes()
     else:
         return to_tuple_(np.array(arg))
 
@@ -172,7 +173,11 @@ def fn_with_sol_cache(fwd_fn, cache=None, jit=True):
 
         def fn_with_sol(*args, **kwargs):
             cache, sol_key = fn_with_sol.cache, to_tuple(*args)
-            sol = fwd_fn_(*args) if not sol_key in cache else cache[sol_key]
+            sol = (
+                fwd_fn_(*args, **kwargs)
+                if not sol_key in cache
+                else cache[sol_key]
+            )
             cache.setdefault(sol_key, sol)
             ret = fn_with_sol.fn(sol, *args, **kwargs)
             return ret
