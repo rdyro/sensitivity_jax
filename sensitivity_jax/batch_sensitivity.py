@@ -19,7 +19,7 @@ from .specialized_matrix_inverse import solve_gmres  # , solve_cg
 from .sensitivity import implicit_jacobian as implicit_jacobian_
 from .sensitivity import implicit_hessian as implicit_hessian_
 
-DeviceArray = jaxm.DeviceArray
+JAXArray = jaxm.jax.Array
 
 
 def _ensure_list(a):
@@ -46,12 +46,12 @@ def _split_into_array_and_not(d: Mapping):
     if d is None:
         return None
     d_array = {
-        k: v for (k, v) in d.items() if isinstance(v, (DeviceArray, np.ndarray))
+        k: v for (k, v) in d.items() if isinstance(v, (JAXArray, np.ndarray))
     }
     d_other = {
         k: v
         for (k, v) in d.items()
-        if not isinstance(v, (DeviceArray, np.ndarray))
+        if not isinstance(v, (JAXArray, np.ndarray))
     }
     return d_array, d_other
 
@@ -81,21 +81,23 @@ def _generate_default_Dzk_solve_fn(optimizations: Mapping, k_fn: Callable):
         else:
             if optimizations.get("F", None) is None:
                 optimizations["F"] = jaxm.linalg.lu_factor(
-                    jaxm.t(Dzk.reshape((blen, zlen, zlen)))
+                    Dzk.reshape((blen, zlen, zlen))
                 )
             return jaxm.linalg.lu_solve(optimizations["F"], rhs)
 
     optimizations["Dzk_solve_fn"] = Dzk_solve_fn
+
+
 ################################################################################
 
 
 def implicit_jacobian2(
     k_fn: Callable,
-    z: DeviceArray,
-    *params: DeviceArray,
+    z: JAXArray,
+    *params: JAXArray,
     nondiff_kw: Mapping = None,
-    Dg: DeviceArray = None,
-    jvp_vec: Union[DeviceArray, Sequence[DeviceArray]] = None,
+    Dg: JAXArray = None,
+    jvp_vec: Union[JAXArray, Sequence[JAXArray]] = None,
     matrix_free_inverse: bool = False,
     full_output: bool = False,
     optimizations: Mapping = None,
@@ -151,11 +153,11 @@ def implicit_jacobian2(
 
 def implicit_jacobian(
     k_fn: Callable,
-    z: DeviceArray,
-    *params: DeviceArray,
+    z: JAXArray,
+    *params: JAXArray,
     nondiff_kw: Mapping = None,
-    Dg: DeviceArray = None,
-    jvp_vec: Union[DeviceArray, Sequence[DeviceArray]] = None,
+    Dg: JAXArray = None,
+    jvp_vec: Union[JAXArray, Sequence[JAXArray]] = None,
     matrix_free_inverse: bool = False,
     full_output: bool = False,
     optimizations: Mapping = None,
@@ -242,12 +244,12 @@ def implicit_jacobian(
 
 def implicit_hessian2(
     k_fn: Callable,
-    z: DeviceArray,
-    *params: DeviceArray,
+    z: JAXArray,
+    *params: JAXArray,
     nondiff_kw: Mapping = None,
-    Dg: DeviceArray = None,
-    Hg: DeviceArray = None,
-    jvp_vec: Union[DeviceArray, Sequence[DeviceArray]] = None,
+    Dg: JAXArray = None,
+    Hg: JAXArray = None,
+    jvp_vec: Union[JAXArray, Sequence[JAXArray]] = None,
     optimizations: Mapping = None,
 ):
     """Computes the implicit Hessian or chain rule depending on Dg, Hg, jvp_vec,
@@ -299,12 +301,12 @@ def implicit_hessian2(
 
 def implicit_hessian(
     k_fn: Callable,
-    z: DeviceArray,
-    *params: DeviceArray,
+    z: JAXArray,
+    *params: JAXArray,
     nondiff_kw: Mapping = None,
-    Dg: DeviceArray = None,
-    Hg: DeviceArray = None,
-    jvp_vec: Union[DeviceArray, Sequence[DeviceArray]] = None,
+    Dg: JAXArray = None,
+    Hg: JAXArray = None,
+    jvp_vec: Union[JAXArray, Sequence[JAXArray]] = None,
     optimizations: Mapping = None,
 ):
     """Computes the implicit Hessian or chain rule depending on Dg, Hg,
@@ -593,6 +595,8 @@ def generate_optimization_fns(
     normalize_grad: bool = False,
     optimizations: Mapping = None,
     jit: bool = True,
+    use_cache: bool = True,
+    kw_in_key: bool = True,
 ):
     """Directly generates upper/outer bilevel program derivative functions.
 
@@ -602,18 +606,19 @@ def generate_optimization_fns(
         k_fn: k_fn(z, *params) = 0, lower/inner implicit function
         normalize_grad: whether to normalize the gradient by its norm
         jit: whether to apply just-in-time (jit) compilation to the functions
+        cache_solutions: whether to cache the solution
     Returns:
         ``f_fn(*params), g_fn(*params), h_fn(*params)``
         parameters-only upper/outer level loss, gradient and Hessian.
     """
-    sol_cache = {}
-    optimizations = {} if optimizations is None else copy(optimizations)
+    sol_cache = dict()
+    optimizations = dict() if optimizations is None else copy(optimizations)
 
-    @fn_with_sol_cache(opt_fn, sol_cache, jit=jit)
+    @fn_with_sol_cache(opt_fn, sol_cache, jit=jit, use_cache=use_cache, kw_in_key=kw_in_key)
     def f_fn(z, *params, **nondiff_kw):
         return loss_fn(z, *params, **nondiff_kw)
 
-    @fn_with_sol_cache(opt_fn, sol_cache, jit=jit)
+    @fn_with_sol_cache(opt_fn, sol_cache, jit=jit, use_cache=use_cache, kw_in_key=kw_in_key)
     def g_fn(z, *params, **nondiff_kw):
         g = JACOBIAN(loss_fn, argnums=range(len(params) + 1))(
             z, *params, **nondiff_kw
@@ -632,7 +637,7 @@ def generate_optimization_fns(
             ret = [(z / (jaxm.norm(z) + 1e-7)) for z in ret]
         return ret[0] if len(ret) == 1 else ret
 
-    @fn_with_sol_cache(opt_fn, sol_cache, jit=jit)
+    @fn_with_sol_cache(opt_fn, sol_cache, jit=jit, use_cache=use_cache, kw_in_key=kw_in_key)
     def h_fn(z, *params, **nondiff_kw):
         g = JACOBIAN(loss_fn, argnums=range(len(params) + 1))(
             z, *params, **nondiff_kw

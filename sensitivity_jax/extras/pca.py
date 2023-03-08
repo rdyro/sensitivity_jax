@@ -71,6 +71,7 @@ def visualize_landscape(
     Zp = jaxm.stack(ls).reshape(Xp.shape)
     assess_convexity(Zp)
     l_optimal = min(loss_fn(x_hist[-1]), jaxm.min(Zp))
+    Zp_org = Zp
 
     if log:
         Zp = jaxm.log10(Zp - l_optimal + 1e-7)
@@ -97,7 +98,7 @@ def visualize_landscape(
     X_projected_loss = jaxm.stack(
         [
             loss_fn((U @ pt + X_mean[None, :]).reshape(param_shape))
-            for pt in X_projected
+            for pt in tqdm(X_projected)
         ]
     )
 
@@ -111,7 +112,7 @@ def visualize_landscape(
     ax.contourf(Xp, Yp, Zp, 100, zdir="z", offset=np.min(Zp), cmap=cmap)
     fig.tight_layout()
 
-    return np.stack([Xp, Yp], -1), Zp
+    return np.stack([Xp, Yp], -1), Zp, Zp_org
 
 
 if __name__ == "__main__":

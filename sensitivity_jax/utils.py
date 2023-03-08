@@ -1,9 +1,6 @@
 ##^# ops import and utils ######################################################
-import os, pickle, time as time_module, pdb, math
-from pprint import pprint
-from collections import OrderedDict as odict
-from operator import itemgetter, mul
-from functools import reduce
+import math
+from typing import Dict, Optional, Callable
 
 from .jax_friendly_interface import init
 
@@ -12,6 +9,7 @@ jaxm = init()
 import numpy as np
 from torch.utils.tensorboard import SummaryWriter
 
+from math import prod
 
 ##$#############################################################################
 ##^# general utils #############################################################
@@ -23,15 +21,12 @@ is_equal = (
     and (a.shape == b.shape)
     and (jaxm.norm(a - b) / math.sqrt(a.numel()) < 1e-7)
 )
-prod = lambda zs: reduce(mul, zs) if zs != () else 1
 
 
 def normalize(x, dim=-2, params=None, min_std=1e-3):
     if params is None:
         x_mu = jaxm.mean(x, dim, keepdims=True)
-        x_std = jaxm.maximum(
-            jaxm.std(x, dim, keepdims=True), jaxm.array(min_std)
-        )
+        x_std = jaxm.maximum(jaxm.std(x, dim, keepdims=True), jaxm.array(min_std))
     else:
         x_mu, x_std = params
     return (x - x_mu) / x_std, (x_mu, x_std)
@@ -45,7 +40,7 @@ n2j = lambda x: jaxm.array(x)
 
 
 def scale_down(X, size=2, width=None, height=None):
-    kernel = jaxm.ones((1, 1, size, size)) / (size ** 2)
+    kernel = jaxm.ones((1, 1, size, size)) / (size**2)
 
     assert X.ndim == 2 or X.ndim == 3 or (X.ndim == 4 and X.shape[1] == 1)
     if X.ndim == 2:
@@ -79,10 +74,7 @@ class TablePrinter:
     def __init__(self, names, fmts=None, prefix="", use_writer=False):
         self.names = names
         self.fmts = fmts if fmts is not None else ["%9.4e" for _ in names]
-        self.widths = [
-            max(self.calc_width(fmt), len(name)) + 2
-            for (fmt, name) in zip(fmts, names)
-        ]
+        self.widths = [max(self.calc_width(fmt), len(name)) + 2 for (fmt, name) in zip(fmts, names)]
         self.prefix = prefix
         self.writer = None
         if use_writer:
@@ -155,31 +147,67 @@ class TablePrinter:
 def to_tuple_(arg):
     if isinstance(arg, np.ndarray):
         return arg.tobytes()
-    elif isinstance(arg, jaxm.DeviceArray):
+    elif isinstance(arg, jaxm.jax.Array):
         return arg.tobytes()
+    elif isinstance(arg, (list, tuple)):
+        return tuple(to_tuple_(x) for x in arg)
+    elif isinstance(arg, (float, int, str)):
+        return arg
+    elif isinstance(arg, dict):
+        return tuple((to_tuple_(k), to_tuple_(v)) for (k, v) in arg.items())
     else:
         return to_tuple_(np.array(arg))
-
 
 def to_tuple(*args):
     return tuple(to_tuple_(arg) for arg in args)
 
+def to_tuple_with_kw(*args, **kw):
+    kw = dict(kw)
+    sorted_keys = sorted(kw.keys())
+    args_ = tuple(args) + tuple(sorted_keys) + tuple(kw[k] for k in sorted_keys)
+    sol_key = to_tuple(*args_)
+    return sol_key
 
-def fn_with_sol_cache(fwd_fn, cache=None, jit=True):
+
+def fn_with_sol_cache(
+    fwd_fn: Callable,
+    cache: Optional[Dict] = None,
+    jit: bool = True,
+    use_cache: bool = True,
+    kw_in_key: bool = True,
+):
+    """Wraps a function in a version where computation of the first argument via fwd_fn is cached.
+
+    Args:
+        fwd_fn (Callable): The forward function to hide.
+        cache (Optional[Dict], optional): The cache to (re-)use.
+        jit (bool, optional): Whether to jit the forward function. Defaults to True.
+        use_cache (bool, optional): Whether to use the cache at all. Defaults to True.
+        kw_in_key(bool, optional): Whether to use keyword arguments in key. Defaults to True.
+    """
+
     def inner_decorator(fn):
         nonlocal cache
-        cache = cache if cache is None else cache
-        fwd_fn_ = fwd_fn  # assume already jit-ed
+        cache = cache if cache is None else dict()
+        fwd_fn_ = fwd_fn # assume already jit-ed
 
-        def fn_with_sol(*args, **kwargs):
-            cache, sol_key = fn_with_sol.cache, to_tuple(*args)
-            sol = (
-                fwd_fn_(*args, **kwargs)
-                if not sol_key in cache
-                else cache[sol_key]
-            )
-            cache.setdefault(sol_key, sol)
-            ret = fn_with_sol.fn(sol, *args, **kwargs)
+        def fn_with_sol(*args, **kw):
+            if not kw_in_key:
+                cache, sol_key = fn_with_sol.cache, to_tuple(*args)
+            else:
+                cache, sol_key = fn_with_sol.cache, to_tuple_with_kw(*args, **kw)
+            #if sol_key in cache:
+            #    print("Cache hit")
+            #else:
+            #    print(f"Cache miss, cache size is {len(cache)}")
+            #import time
+            #t = time.time()
+            sol = fwd_fn_(*args, **kw) if sol_key not in cache else cache[sol_key]
+            #print(f"Forward eval takes {time.time() - t:.4e} s")
+            #print(f"sol_key = {hash(sol_key)}")
+            if use_cache:
+                cache.setdefault(sol_key, sol)
+            ret = fn_with_sol.fn(sol, *args, **kw)
             return ret
 
         fn_with_sol.cache = cache

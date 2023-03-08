@@ -4,9 +4,9 @@ from functools import partial
 
 import torch, numpy as np
 
-from ..jax_friendly_interface import init
+from .. import jax_friendly_interface as jfi
 
-jaxm = init()
+jaxm = jfi.init()
 
 from ..utils import t2j
 
@@ -27,8 +27,7 @@ def linear(input, *args, **kwargs):
 def conv(input, *args, **kwargs):
     C, C0 = args
     return (
-        jaxm.lax.conv(input, C, kwargs["stride"], "VALID")
-        + C0[..., None, None]
+        jaxm.lax.conv(input, C, kwargs["stride"], "VALID") + C0[..., None, None]
     )
 
 
@@ -124,6 +123,31 @@ def nn_forward_gen(nn, debug=False):
         return Z
 
     return fn
+
+
+################################################################################
+
+
+################################################################################
+def flax_forward_gen(model, x):
+    state = model.init(jfi.key, x)
+    all_params, param_struct = jaxm.jax.tree_flatten(state)
+    shapes = [z.shape for z in all_params]
+    sizes = [z.size for z in all_params]
+    secs = np.array(jaxm.cumsum(jaxm.array(sizes)))
+    all_params = jaxm.cat([param.reshape(-1) for param in all_params], -1)
+
+    def fwd_fn(all_params, x):
+        all_params = jaxm.split(all_params, secs)
+        all_params = [
+            param.reshape(shape) for (param, shape) in zip(all_params, shapes)
+        ]
+        all_params = jaxm.jax.tree_unflatten(param_struct, all_params)
+
+        yp = model.apply(all_params, x)
+        return yp
+
+    return fwd_fn, all_params
 
 
 ################################################################################

@@ -15,7 +15,7 @@ from .utils import fn_with_sol_cache, prod
 from .differentiation import JACOBIAN, HESSIAN, HESSIAN_DIAG
 from .specialized_matrix_inverse import solve_gmres  # , solve_cg
 
-DeviceArray = jaxm.DeviceArray
+JAXArray = jaxm.jax.Array
 
 
 def _generate_default_Dzk_solve_fn(optimizations: Mapping, k_fn: Callable):
@@ -57,11 +57,11 @@ def _ensure_list(a):
 
 def implicit_jacobian(
     k_fn: Callable,
-    z: DeviceArray,
-    *params: DeviceArray,
+    z: JAXArray,
+    *params: JAXArray,
     nondiff_kw: Mapping = None,
-    Dg: DeviceArray = None,
-    jvp_vec: Union[DeviceArray, Sequence[DeviceArray]] = None,
+    Dg: JAXArray = None,
+    jvp_vec: Union[JAXArray, Sequence[JAXArray]] = None,
     matrix_free_inverse: bool = False,
     full_output: bool = False,
     optimizations: Mapping = None,
@@ -143,12 +143,12 @@ def implicit_jacobian(
 
 def implicit_hessian(
     k_fn: Callable,
-    z: DeviceArray,
-    *params: DeviceArray,
+    z: JAXArray,
+    *params: JAXArray,
     nondiff_kw: Mapping = None,
-    Dg: DeviceArray = None,
-    Hg: DeviceArray = None,
-    jvp_vec: Union[DeviceArray, Sequence[DeviceArray]] = None,
+    Dg: JAXArray = None,
+    Hg: JAXArray = None,
+    jvp_vec: Union[JAXArray, Sequence[JAXArray]] = None,
     optimizations: Mapping = None,
 ):
     """Computes the implicit Hessian or chain rule depending on Dg, Hg, jvp_vec.
@@ -432,12 +432,12 @@ def generate_optimization_fns(
     optimizations = {} if optimizations is None else copy(optimizations)
 
     @fn_with_sol_cache(opt_fn, sol_cache, jit=jit)
-    def f_fn(z, *params):
-        return loss_fn(z, *params)
+    def f_fn(z, *params, **nondiff_kw):
+        return loss_fn(z, *params, **nondiff_kw)
 
     @fn_with_sol_cache(opt_fn, sol_cache, jit=jit)
     def g_fn(z, *params, **nondiff_kw):
-        g = JACOBIAN(loss_fn, argnums=range(len(params) + 1))(z, *params)
+        g = JACOBIAN(loss_fn, argnums=range(len(params) + 1))(z, *params, **nondiff_kw)
         Dp = implicit_jacobian(
             k_fn,
             z,
@@ -454,13 +454,14 @@ def generate_optimization_fns(
 
     @fn_with_sol_cache(opt_fn, sol_cache, jit=jit)
     def h_fn(z, *params, **nondiff_kw):
-        g = JACOBIAN(loss_fn, argnums=range(len(params) + 1))(z, *params)
+        g = JACOBIAN(loss_fn, argnums=range(len(params) + 1))(z, *params,
+                **nondiff_kw)
 
         if optimizations.get("Hz_fn", None) is None:
             optimizations["Hz_fn"] = jaxm.hessian(loss_fn)
         Hz_fn = optimizations["Hz_fn"]
-        Hz = Hz_fn(z, *params)
-        H = [Hz] + HESSIAN_DIAG(lambda *params: loss_fn(z, *params))(*params)
+        Hz = Hz_fn(z, *params, **nondiff_kw)
+        H = [Hz] + HESSIAN_DIAG(lambda *params: loss_fn(z, *params, **nondiff_kw))(*params)
 
         _, Dpp = implicit_hessian(
             k_fn,
