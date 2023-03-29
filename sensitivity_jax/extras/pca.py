@@ -4,11 +4,8 @@ import matplotlib.pyplot as plt, numpy as np, torch
 from mpl_toolkits import mplot3d
 from tqdm import tqdm
 
-from ..jax_friendly_interface import init
+from jfi import jaxm
 from ..utils import j2n, n2j
-
-jaxm = init()
-
 
 rand_sign = lambda: random.randint(0, 1) * 2 - 1
 
@@ -17,9 +14,7 @@ def assess_convexity(Z):
     # assume square grid
     assert Z.shape[0] == Z.shape[-1]
     rand_pos = lambda: random.randint(1, Z.shape[-1] - 1)
-    is_in = lambda idx: all(
-        idx[i] >= 0 and idx[i] < Z.shape[-1] for i in range(2)
-    )
+    is_in = lambda idx: all(idx[i] >= 0 and idx[i] < Z.shape[-1] for i in range(2))
 
     nb_checks = 1000
     nb_success = 0
@@ -38,9 +33,7 @@ def assess_convexity(Z):
     print("Convexity check succeeded in: %d/%d" % (nb_success, nb_checks))
 
 
-def visualize_landscape(
-    loss_fn, x_hist, N=30, log=True, verbose=False, zoom_scale=1.0
-):
+def visualize_landscape(loss_fn, x_hist, N=30, log=True, verbose=False, zoom_scale=1.0):
     param_shape = x_hist[0].shape
     if isinstance(x_hist, list) or isinstance(x_hist, tuple):
         X = jaxm.stack(x_hist, 0).reshape((-1, x_hist[0].size))
@@ -61,13 +54,7 @@ def visualize_landscape(
     ls = []
     for i in tqdm(range(pts.shape[0])):
         pt = pts[i, :]
-        ls.append(
-            loss_fn(
-                (U @ (pt + X_projected[-1, :]) + X_mean[None, :]).reshape(
-                    param_shape
-                )
-            )
-        )
+        ls.append(loss_fn((U @ (pt + X_projected[-1, :]) + X_mean[None, :]).reshape(param_shape)))
     Zp = jaxm.stack(ls).reshape(Xp.shape)
     assess_convexity(Zp)
     l_optimal = min(loss_fn(x_hist[-1]), jaxm.min(Zp))
@@ -96,10 +83,7 @@ def visualize_landscape(
     fig = plt.figure()
     ax = plt.axes(projection="3d")
     X_projected_loss = jaxm.stack(
-        [
-            loss_fn((U @ pt + X_mean[None, :]).reshape(param_shape))
-            for pt in tqdm(X_projected)
-        ]
+        [loss_fn((U @ pt + X_mean[None, :]).reshape(param_shape)) for pt in tqdm(X_projected)]
     )
 
     if log:

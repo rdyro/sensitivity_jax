@@ -4,11 +4,7 @@ from copy import copy
 
 import numpy as np
 
-# order of internal imports is important, jax_friendly_interface chooses a
-# default device
-from .jax_friendly_interface import init
-
-jaxm = init()
+from jfi import jaxm
 
 # the order for the rest of the imports does not matter
 from .utils import fn_with_sol_cache, prod, bmv

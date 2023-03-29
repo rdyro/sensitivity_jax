@@ -1,11 +1,8 @@
 from functools import reduce
 from operator import mul
 from math import prod
-import pdb
 
-from .jax_friendly_interface import init
-
-jaxm = init()
+from jfi import jaxm
 
 JACOBIAN = jaxm.jacobian
 JACOBIAN.__doc__ = """Equivalent to jax.jacobian."""

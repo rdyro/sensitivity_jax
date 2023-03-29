@@ -1,24 +1,22 @@
-##^# library imports and utils #################################################
-import math, os, pdb, sys, time
-from typing import Callable, Union
-import signal
+# library imports and utils ########################################################################
+import math
+from typing import Callable, Union, Optional, Dict, Any
 
-import torch, numpy as np
+import torch
+import numpy as np
 import tqdm as tqdm_module
-import tqdm.notebook
-import optax
+import tqdm.notebook  # pylint: disable=unused-import
 
-from ..jax_friendly_interface import init
-
-jaxm = init()
+from jfi import jaxm
 
 from .extras_utils import x2t
 from ..utils import t2j, TablePrinter
 
 from jax import Array as JAXArray
 
-##$#############################################################################
-##^# Accelerated Gradient Descent ##############################################
+
+# Accelerated Gradient Descent #####################################################################
+
 def minimize_agd(
     f_fn: Callable,
     g_fn: Callable,
@@ -33,6 +31,8 @@ def minimize_agd(
     callback_fn: Callable = None,
     use_writer: bool = False,
     use_tqdm: Union[bool, tqdm_module.std.tqdm, tqdm_module.notebook.tqdm_notebook] = False,
+    state: Optional[Dict[str, Any]] = None,
+    optimizer: Optional[str] = None,
 ):
     """Minimize a loss function ``f_fn`` with Accelerated Gradient Descent (AGD)
     with respect to ``*args``. Uses PyTorch.
@@ -54,6 +54,7 @@ def minimize_agd(
     Returns:
         Optimized ``args`` or ``(args, args_hist)`` if ``full_output`` is ``True``
     """
+    state = dict() if state is None else state
 
     if isinstance(use_tqdm, bool):
         if use_tqdm:
@@ -70,7 +71,14 @@ def minimize_agd(
     args = [arg.clone().detach() for arg in args]
     imprv = float("inf")
     gam = (af / ai) ** (1.0 / max_it)
-    opt = torch.optim.Adam(args, lr=ai)
+    opt_map = {
+        "adam": torch.optim.Adam,
+        "sgd": torch.optim.SGD,
+        "rmsprop": torch.optim.RMSprop,
+        "adagrad": torch.optim.Adagrad,
+        "adadelta": torch.optim.Adadelta,
+    }
+    opt = state.get("opt", opt_map.get(optimizer.lower(), torch.optim.Adam)(args, lr=ai))
     tp = TablePrinter(
         ["it", "imprv", "loss", "||g||_2"],
         ["%05d", "%9.4e", "%9.4e", "%9.4e"],
@@ -90,15 +98,15 @@ def minimize_agd(
             args_prev = [arg.clone().detach() for arg in args]
             opt.zero_grad()
             args_ = [t2j(arg) for arg in args]
-            l = torch.mean(x2t(f_fn(*args_)))
+            loss = torch.mean(x2t(f_fn(*args_)))
             gs = g_fn(*args_)
             gs = gs if isinstance(gs, list) or isinstance(gs, tuple) else [gs]
             gs = [x2t(g) for g in gs]
-            for (arg, g) in zip(args, gs):
+            for arg, g in zip(args, gs):
                 arg.grad = torch.detach(g)
-            g_norm = sum(torch.norm(arg.grad) for arg in args if arg.grad is not None).detach() / len(
-                args
-            )
+            g_norm = sum(
+                torch.norm(arg.grad) for arg in args if arg.grad is not None
+            ).detach() / len(args)
             opt.step()
             args_hist.append([arg.detach().clone() for arg in args])
             if callback_fn is not None:
@@ -111,7 +119,7 @@ def minimize_agd(
             else:
                 imprv = sum(torch.norm(arg_prev - arg) for (arg, arg_prev) in zip(args, args_prev))
             if verbose or use_writer:
-                line = tp.make_values([it, imprv.detach(), l.detach(), g_norm])
+                line = tp.make_values([it, imprv.detach(), loss.detach(), g_norm])
                 if verbose:
                     print_fn(line)
             for pgroup in opt.param_groups:
@@ -124,14 +132,15 @@ def minimize_agd(
     ret = ret if len(args) > 1 else ret[0]
     args_hist = [[t2j(arg) for arg in z] for z in args_hist]
     args_hist = [z if len(args) > 1 else z[0] for z in args_hist]
+    state = dict(state, opt=opt)
     if full_output:
-        return ret, args_hist
+        return ret, args_hist, state
     else:
         return ret
 
 
-##$#############################################################################
-##^# L-BFGS ####################################################################
+# L-BFGS ###########################################################################################
+
 def minimize_lbfgs(
     f_fn: Callable,
     g_fn: Callable,
@@ -145,6 +154,7 @@ def minimize_lbfgs(
     callback_fn: Callable = None,
     use_writer: bool = False,
     use_tqdm: Union[bool, tqdm_module.std.tqdm, tqdm_module.notebook.tqdm_notebook] = False,
+    state: Optional[Dict[str, Any]] = None,
 ):
     """Minimize a loss function ``f_fn`` with L-BFGS with respect to ``*args``.
     Taken from PyTorch.
@@ -165,6 +175,7 @@ def minimize_lbfgs(
     Returns:
         Optimized ``args`` or ``(args, args_hist)`` if ``full_output`` is ``True``
     """
+    state = dict() if state is None else state
     if isinstance(use_tqdm, bool):
         if use_tqdm:
             print_fn, rng_wrapper = tqdm_module.tqdm.write, tqdm_module.tqdm
@@ -185,19 +196,22 @@ def minimize_lbfgs(
     args = [x2t(arg) for arg in args]
     args = [arg.detach().clone() for arg in args]
     it, imprv = 0, float("inf")
-    opt = torch.optim.LBFGS(args, lr=lr)
+    if "opt" in state:
+        opt = state["opt"]
+    else:
+        opt = torch.optim.LBFGS(args, lr=lr)
     args_hist = [[arg.detach().clone() for arg in args]]
 
     def closure():
         opt.zero_grad()
         args_ = [t2j(arg) for arg in args]
-        l = torch.mean(x2t(f_fn(*args_)))
+        loss = torch.mean(x2t(f_fn(*args_)))
         gs = g_fn(*args_)
         gs = gs if isinstance(gs, list) or isinstance(gs, tuple) else [gs]
         gs = [x2t(g) for g in gs]
-        for (arg, g) in zip(args, gs):
+        for arg, g in zip(args, gs):
             arg.grad = torch.detach(g)
-        return l
+        return loss
 
     tp = TablePrinter(
         ["it", "imprv", "loss", "||g||_2"],
@@ -210,7 +224,7 @@ def minimize_lbfgs(
     try:
         for it in rng_wrapper(range(max_it)):
             args_prev = [arg.detach().clone() for arg in args]
-            l = opt.step(closure)
+            loss = opt.step(closure)
             if full_output:
                 args_hist.append([arg.detach().clone() for arg in args])
             if callback_fn is not None:
@@ -227,7 +241,7 @@ def minimize_lbfgs(
             if verbose or use_writer:
                 closure()
                 g_norm = sum(arg.grad.norm().detach() for arg in args if arg.grad is not None)
-                line = tp.make_values([it, imprv.detach(), l.detach(), g_norm])
+                line = tp.make_values([it, imprv.detach(), loss.detach(), g_norm])
                 if verbose:
                     print_fn(line)
             if imprv < 1e-9:
@@ -240,14 +254,16 @@ def minimize_lbfgs(
     ret = ret if len(args) > 1 else ret[0]
     args_hist = [[t2j(arg) for arg in z] for z in args_hist]
     args_hist = [z if len(args) > 1 else z[0] for z in args_hist]
+    state = dict(state, opt=opt)
     if full_output:
-        return ret, args_hist
+        return ret, args_hist, state
     else:
         return ret
 
 
-##$#############################################################################
-##^# SQP (own) #################################################################
+# SQP (own) ########################################################################################
+
+
 def _linesearch(
     f,
     x,
@@ -257,10 +273,11 @@ def _linesearch(
     ls_pts_nb=5,
     force_step=False,
 ):
+    opts = dict(dtype=x.dtype, device=x.device())
     if ls_pts_nb >= 2:
-        bets = 10.0 ** jaxm.linspace(-1, 1, ls_pts_nb)
+        bets = 10.0 ** jaxm.linspace(-1, 1, ls_pts_nb, **opts)
     else:
-        bets = jaxm.array([1.0])
+        bets = jaxm.to(jaxm.array([1.0]), **opts)
     y = jaxm.stack(
         [jaxm.atleast_1d(f_fn(x + bet * d)) for bet in bets],
         1,
@@ -268,12 +285,12 @@ def _linesearch(
     y = jaxm.where(jaxm.isnan(y), math.inf, y)
 
     if not force_step:
-        bets = jaxm.cat([jaxm.zeros((1,)), bets], -1)
+        bets = jaxm.cat([jaxm.zeros((1,), **opts), bets], -1)
         y = jaxm.cat([jaxm.atleast_1d(f)[..., None], y], -1)
 
     idxs = jaxm.argmin(y, 1)
-    f_best = jaxm.array([y[i, idx] for (i, idx) in enumerate(idxs)])
-    bet = jaxm.array([bets[idx] for idx in idxs])
+    f_best = jaxm.to(jaxm.array([y[i, idx] for (i, idx) in enumerate(idxs)]), **opts)
+    bet = jaxm.to(jaxm.array([bets[idx] for idx in idxs]), **opts)
 
     d_norm = jaxm.norm(d.reshape((d.shape[0], -1)), axis=1)
 
@@ -284,13 +301,14 @@ def _positive_factorization_cholesky(H, reg0):
     reg_it_max = 0
     reg, reg_it = reg0, 0
     H_reg, F = H, None
+    opts = dict(dtype=H.dtype, device=H.device())
     while True:
         try:
-            H_reg = H + jaxm.diag(reg * jaxm.ones((H_reg.shape[-1],)))
+            H_reg = H + jaxm.diag(reg * jaxm.ones((H_reg.shape[-1],), **opts))
             F = jaxm.linalg.cholesky(H_reg)
             assert not jaxm.any(jaxm.isnan(F[0]))
             break
-        except AssertionError as e:
+        except AssertionError:
             reg_it += 1
             reg *= 5e0
             if reg >= 0.99e7:
@@ -300,7 +318,7 @@ def _positive_factorization_cholesky(H, reg0):
 
 
 def _positive_factorization_lobpcg(H, reg0):
-    reg = jaxm.min(jaxm.linalg.eigvals(H.reshape((H.shape[-1], H.shape[-1]))).real)
+    reg = jaxm.min(jaxm.linalg.eigvalsh(H.reshape((H.shape[-1], H.shape[-1]))).real)
     reg = reg.reshape(-1)[0]
     return _positive_factorization_cholesky(H, max(max(-2.0 * reg, 0.0), reg0))
 
@@ -321,6 +339,7 @@ def minimize_sqp(
     callback_fn: Callable = None,
     use_writer: bool = False,
     use_tqdm: Union[bool, tqdm_module.std.tqdm, tqdm_module.notebook.tqdm_notebook] = False,
+    state: Optional[Dict[str, Any]] = None,
 ):
     """Minimize a loss function ``f_fn`` with Unconstrained Sequential Quadratic
     Programming (SQP) with respect to a single ``arg``.
@@ -344,6 +363,7 @@ def minimize_sqp(
     Returns:
         Optimized ``args`` or ``(args, args_hist)`` if ``full_output`` is ``True``
     """
+    state = dict() if state is None else state
     if isinstance(use_tqdm, bool):
         if use_tqdm:
             print_fn, rng_wrapper = tqdm_module.tqdm.write, tqdm_module.tqdm
@@ -353,7 +373,7 @@ def minimize_sqp(
         print_fn, rng_wrapper = use_tqdm.write, use_tqdm
 
     if len(args) > 1:
-        raise ValueError("SQP only only supports single variable functions")
+        raise ValueError("SQP only supports single variable functions")
     x = args[0]
     x_shape = x.shape
 
@@ -368,7 +388,6 @@ def minimize_sqp(
     x_best, f_best = x, jaxm.atleast_1d(f_fn(x))
     f_hist, x_hist = [f_best], [x]
 
-    t__ = time.time()
     tp = TablePrinter(
         ["it", "imprv", "loss", "reg_it", "bet", "||g_prev||_2"],
         ["%05d", "%9.4e", "%9.4e", "%02d", "%9.4e", "%9.4e"],
@@ -395,15 +414,7 @@ def minimize_sqp(
 
             d = jaxm.linalg.cholesky_solve(F, -g[..., None])[..., 0].reshape(x_shape)
             f = f_hist[-1]
-            bet, data = _linesearch(
-                f,
-                x,
-                d,
-                f_fn,
-                g_fn,
-                ls_pts_nb=ls_pts_nb,
-                force_step=force_step,
-            )
+            bet, data = _linesearch(f, x, d, f_fn, g_fn, ls_pts_nb=ls_pts_nb, force_step=force_step)
 
             x = x + jaxm.reshape(bet, (M,) + (1,) * len(x_shape[1:])) * d
             x_hist.append(x)
@@ -425,14 +436,7 @@ def minimize_sqp(
             f_hist.append(data["f_best"])
             if verbose or use_writer:
                 line = tp.make_values(
-                    [
-                        it,
-                        imprv,
-                        jaxm.mean(data["f_best"]),
-                        reg_it_max,
-                        bet[0],
-                        jaxm.norm(g),
-                    ]
+                    [it, imprv, jaxm.mean(data["f_best"]), reg_it_max, bet[0], jaxm.norm(g)]
                 )
                 if verbose:
                     print_fn(line)
@@ -443,7 +447,7 @@ def minimize_sqp(
     if verbose:
         print_fn(tp.make_footer())
     if full_output:
-        return x_best, x_hist + [x_best]
+        return x_best, x_hist + [x_best], state
     else:
         return x_best
 

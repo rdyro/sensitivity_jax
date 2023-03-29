@@ -4,9 +4,7 @@ from functools import partial
 
 import torch, numpy as np
 
-from .. import jax_friendly_interface as jfi
-
-jaxm = jfi.init()
+from jfi import jaxm
 
 from ..utils import t2j
 

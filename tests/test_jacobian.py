@@ -6,9 +6,7 @@ try:
 except ModuleNotFoundError:
     import tests.import_header
 
-from sensitivity_jax.jax_friendly_interface import init
-
-jaxm = init()
+from jfi import jaxm
 ################################################################################
 
 from sensitivity_jax.sensitivity import implicit_jacobian

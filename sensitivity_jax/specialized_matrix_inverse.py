@@ -23,7 +23,7 @@ def _solve_spla(
     A = _asLinearOperator(A_fn, n, device=device, dtype=dtype)
     b = rhs.detach().cpu().numpy()
     if M_fn is not None:
-        M = _asLinearOperaotr(M_fn, n, device=device, dtype=dtype)
+        M = _asLinearOperator(M_fn, n, device=device, dtype=dtype)
     else:
         M = None
     x0 = x0.detach().cpu().numpy() if x0 is not None else None

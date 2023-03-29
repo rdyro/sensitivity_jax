@@ -1,8 +1,6 @@
 import numpy as np, torch
 
-from ..jax_friendly_interface import init
-
-jaxm = init()
+from jfi import jaxm
 
 from ..utils import j2n
 

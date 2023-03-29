@@ -2,9 +2,7 @@
 import math
 from typing import Dict, Optional, Callable
 
-from .jax_friendly_interface import init
-
-jaxm = init()
+from jfi import jaxm 
 
 import numpy as np
 from torch.utils.tensorboard import SummaryWriter
