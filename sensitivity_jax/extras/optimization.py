@@ -32,7 +32,7 @@ def minimize_agd(
     use_writer: bool = False,
     use_tqdm: Union[bool, tqdm_module.std.tqdm, tqdm_module.notebook.tqdm_notebook] = False,
     state: Optional[Dict[str, Any]] = None,
-    optimizer: Optional[str] = None,
+    optimizer: str = "Adam",
 ):
     """Minimize a loss function ``f_fn`` with Accelerated Gradient Descent (AGD)
     with respect to ``*args``. Uses PyTorch.

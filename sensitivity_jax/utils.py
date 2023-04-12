@@ -194,18 +194,49 @@ def fn_with_sol_cache(
                 cache, sol_key = fn_with_sol.cache, to_tuple(*args)
             else:
                 cache, sol_key = fn_with_sol.cache, to_tuple_with_kw(*args, **kw)
-            #if sol_key in cache:
-            #    print("Cache hit")
-            #else:
-            #    print(f"Cache miss, cache size is {len(cache)}")
-            #import time
-            #t = time.time()
             sol = fwd_fn_(*args, **kw) if sol_key not in cache else cache[sol_key]
-            #print(f"Forward eval takes {time.time() - t:.4e} s")
-            #print(f"sol_key = {hash(sol_key)}")
             if use_cache:
                 cache.setdefault(sol_key, sol)
             ret = fn_with_sol.fn(sol, *args, **kw)
+            return ret
+
+        fn_with_sol.cache = cache
+        fn_with_sol.fn = jaxm.jit(fn) if jit else fn
+        return fn_with_sol
+
+    return inner_decorator
+
+def fn_with_sol_and_state_cache(
+    fwd_fn: Callable,
+    cache: Optional[Dict] = None,
+    jit: bool = True,
+    use_cache: bool = True,
+    kw_in_key: bool = True,
+):
+    """Wraps a function in a version where computation of the first argument via fwd_fn is cached.
+
+    Args:
+        fwd_fn (Callable): The forward function to hide.
+        cache (Optional[Dict], optional): The cache to (re-)use.
+        jit (bool, optional): Whether to jit the forward function. Defaults to True.
+        use_cache (bool, optional): Whether to use the cache at all. Defaults to True.
+        kw_in_key(bool, optional): Whether to use keyword arguments in key. Defaults to True.
+    """
+
+    def inner_decorator(fn):
+        nonlocal cache
+        cache = cache if cache is None else dict()
+        fwd_fn_ = fwd_fn # assume already jit-ed
+
+        def fn_with_sol(*args, **kw):
+            if not kw_in_key:
+                cache, sol_key = fn_with_sol.cache, to_tuple(*args)
+            else:
+                cache, sol_key = fn_with_sol.cache, to_tuple_with_kw(*args, **kw)
+            sol, state = fwd_fn_(*args, **kw) if sol_key not in cache else cache[sol_key]
+            if use_cache:
+                cache.setdefault(sol_key, (sol, state))
+            ret = fn_with_sol.fn(sol, *args, state=state, **kw)
             return ret
 
         fn_with_sol.cache = cache

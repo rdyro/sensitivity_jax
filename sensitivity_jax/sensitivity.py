@@ -6,7 +6,7 @@ import numpy as np
 from jfi import jaxm
 
 # the order for the rest of the imports does not matter
-from .utils import fn_with_sol_cache, prod
+from .utils import fn_with_sol_cache, fn_with_sol_and_state_cache, prod
 from .differentiation import JACOBIAN, HESSIAN, HESSIAN_DIAG
 from .specialized_matrix_inverse import solve_gmres  # , solve_cg
 
@@ -448,6 +448,77 @@ def generate_optimization_fns(
         return ret[0] if len(ret) == 1 else ret
 
     @fn_with_sol_cache(opt_fn, sol_cache, jit=jit)
+    def h_fn(z, *params, **nondiff_kw):
+        g = JACOBIAN(loss_fn, argnums=range(len(params) + 1))(z, *params,
+                **nondiff_kw)
+
+        if optimizations.get("Hz_fn", None) is None:
+            optimizations["Hz_fn"] = jaxm.hessian(loss_fn)
+        Hz_fn = optimizations["Hz_fn"]
+        Hz = Hz_fn(z, *params, **nondiff_kw)
+        H = [Hz] + HESSIAN_DIAG(lambda *params: loss_fn(z, *params, **nondiff_kw))(*params)
+
+        _, Dpp = implicit_hessian(
+            k_fn,
+            z,
+            *params,
+            nondiff_kw=None if len(nondiff_kw) == 0 else nondiff_kw,
+            Dg=g[0],
+            Hg=H[0],
+            optimizations=optimizations,
+        )
+        Dpp = Dpp if len(params) != 1 else [Dpp]
+        ret = [Dpp + H for (Dpp, H) in zip(Dpp, H[1:])]
+        return ret[0] if len(ret) == 1 else ret
+
+    return (f_fn, g_fn, h_fn)
+
+
+def generate_optimization_with_state_fns(
+    loss_fn: Callable,
+    opt_fn: Callable,
+    k_fn: Callable,
+    normalize_grad: bool = False,
+    optimizations: Mapping = None,
+    jit: bool = True,
+):
+    """Directly generates upper/outer bilevel program derivative functions.
+
+    Args:
+        loss_fn: loss_fn(z, *params), upper/outer level loss
+        opt_fn: opt_fn(*params) = z, lower/inner argmin function
+        k_fn: k_fn(z, *params) = 0, lower/inner implicit function
+        normalize_grad: whether to normalize the gradient by its norm
+        jit: whether to apply just-in-time (jit) compilation to the functions
+    Returns:
+        ``f_fn(*params), g_fn(*params), h_fn(*params)``
+        parameters-only upper/outer level loss, gradient and Hessian.
+    """
+    sol_cache = {}
+    optimizations = {} if optimizations is None else copy(optimizations)
+
+    @fn_with_sol_and_state_cache(opt_fn, sol_cache, jit=jit)
+    def f_fn(z, *params, **nondiff_kw):
+        return loss_fn(z, *params, **nondiff_kw)
+
+    @fn_with_sol_and_state_cache(opt_fn, sol_cache, jit=jit)
+    def g_fn(z, *params, **nondiff_kw):
+        g = JACOBIAN(loss_fn, argnums=range(len(params) + 1))(z, *params, **nondiff_kw)
+        Dp = implicit_jacobian(
+            k_fn,
+            z,
+            *params,
+            nondiff_kw=None if len(nondiff_kw) == 0 else nondiff_kw,
+            Dg=g[0],
+            optimizations=optimizations,
+        )
+        Dp = Dp if len(params) != 1 else [Dp]
+        ret = [Dp + g for (Dp, g) in zip(Dp, g[1:])]
+        if normalize_grad:
+            ret = [(z / (jaxm.norm(z) + 1e-7)) for z in ret]
+        return ret[0] if len(ret) == 1 else ret
+
+    @fn_with_sol_and_state_cache(opt_fn, sol_cache, jit=jit)
     def h_fn(z, *params, **nondiff_kw):
         g = JACOBIAN(loss_fn, argnums=range(len(params) + 1))(z, *params,
                 **nondiff_kw)
