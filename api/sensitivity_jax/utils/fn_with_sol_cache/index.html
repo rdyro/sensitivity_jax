@@ -472,7 +472,10 @@
 <span class="normal"><a href="#__codelineno-0-241">241</a></span>
 <span class="normal"><a href="#__codelineno-0-242">242</a></span>
 <span class="normal"><a href="#__codelineno-0-243">243</a></span>
-<span class="normal"><a href="#__codelineno-0-244">244</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-181" name="__codelineno-0-181"></a><span class="k">def</span> <span class="nf">fn_with_sol_cache</span><span class="p">(</span>
+<span class="normal"><a href="#__codelineno-0-244">244</a></span>
+<span class="normal"><a href="#__codelineno-0-245">245</a></span>
+<span class="normal"><a href="#__codelineno-0-246">246</a></span>
+<span class="normal"><a href="#__codelineno-0-247">247</a></span></pre></div></td><td class="code"><div><pre><span></span><code><a id="__codelineno-0-181" name="__codelineno-0-181"></a><span class="k">def</span> <span class="nf">fn_with_sol_cache</span><span class="p">(</span>
 <a id="__codelineno-0-182" name="__codelineno-0-182"></a>    <span class="n">fwd_fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">,</span>
 <a id="__codelineno-0-183" name="__codelineno-0-183"></a>    <span class="n">cache</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <a id="__codelineno-0-184" name="__codelineno-0-184"></a>    <span class="n">jit</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -524,18 +527,21 @@
 <a id="__codelineno-0-230" name="__codelineno-0-230"></a>            <span class="c1">#        else custom_arg_serializer(*args)</span>
 <a id="__codelineno-0-231" name="__codelineno-0-231"></a>            <span class="c1">#    )</span>
 <a id="__codelineno-0-232" name="__codelineno-0-232"></a>            <span class="c1">#sol = fwd_fn_(*args, **kw) if sol_key not in cache else cache[sol_key]</span>
-<a id="__codelineno-0-233" name="__codelineno-0-233"></a>            <span class="n">sol_shape_dtype</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">eval_shape</span><span class="p">(</span><span class="n">fwd_fn_</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
-<a id="__codelineno-0-234" name="__codelineno-0-234"></a>            <span class="n">sol</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">pure_callback</span><span class="p">(</span><span class="n">retrieve_solution</span><span class="p">,</span> <span class="n">sol_shape_dtype</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
-<a id="__codelineno-0-235" name="__codelineno-0-235"></a>            <span class="c1">#ret = fn_with_sol.fn(sol, *args, **kw)</span>
-<a id="__codelineno-0-236" name="__codelineno-0-236"></a>            <span class="n">ret</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="n">sol</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
-<a id="__codelineno-0-237" name="__codelineno-0-237"></a>            <span class="k">return</span> <span class="n">ret</span>
-<a id="__codelineno-0-238" name="__codelineno-0-238"></a>
-<a id="__codelineno-0-239" name="__codelineno-0-239"></a>        <span class="n">fn_with_sol</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="n">cache</span>
-<a id="__codelineno-0-240" name="__codelineno-0-240"></a>        <span class="c1">#fn_with_sol.fn = jaxm.jit(fn) if jit else fn</span>
-<a id="__codelineno-0-241" name="__codelineno-0-241"></a>        <span class="n">fn_with_sol</span> <span class="o">=</span> <span class="n">jaxm</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">fn_with_sol</span><span class="p">)</span> <span class="k">if</span> <span class="n">jit</span> <span class="k">else</span> <span class="n">fn_with_sol</span>
-<a id="__codelineno-0-242" name="__codelineno-0-242"></a>        <span class="k">return</span> <span class="n">fn_with_sol</span>
-<a id="__codelineno-0-243" name="__codelineno-0-243"></a>
-<a id="__codelineno-0-244" name="__codelineno-0-244"></a>    <span class="k">return</span> <span class="n">inner_decorator</span>
+<a id="__codelineno-0-233" name="__codelineno-0-233"></a>            <span class="k">if</span> <span class="n">jit</span><span class="p">:</span>
+<a id="__codelineno-0-234" name="__codelineno-0-234"></a>                <span class="n">sol_shape_dtype</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">eval_shape</span><span class="p">(</span><span class="n">fwd_fn_</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+<a id="__codelineno-0-235" name="__codelineno-0-235"></a>                <span class="n">sol</span> <span class="o">=</span> <span class="n">jax</span><span class="o">.</span><span class="n">pure_callback</span><span class="p">(</span><span class="n">retrieve_solution</span><span class="p">,</span> <span class="n">sol_shape_dtype</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+<a id="__codelineno-0-236" name="__codelineno-0-236"></a>            <span class="k">else</span><span class="p">:</span>
+<a id="__codelineno-0-237" name="__codelineno-0-237"></a>                <span class="n">sol</span> <span class="o">=</span> <span class="n">retrieve_solution</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+<a id="__codelineno-0-238" name="__codelineno-0-238"></a>            <span class="c1">#ret = fn_with_sol.fn(sol, *args, **kw)</span>
+<a id="__codelineno-0-239" name="__codelineno-0-239"></a>            <span class="n">ret</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="n">sol</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+<a id="__codelineno-0-240" name="__codelineno-0-240"></a>            <span class="k">return</span> <span class="n">ret</span>
+<a id="__codelineno-0-241" name="__codelineno-0-241"></a>
+<a id="__codelineno-0-242" name="__codelineno-0-242"></a>        <span class="n">fn_with_sol</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="n">cache</span>
+<a id="__codelineno-0-243" name="__codelineno-0-243"></a>        <span class="c1">#fn_with_sol.fn = jaxm.jit(fn) if jit else fn</span>
+<a id="__codelineno-0-244" name="__codelineno-0-244"></a>        <span class="n">fn_with_sol</span> <span class="o">=</span> <span class="n">jaxm</span><span class="o">.</span><span class="n">jit</span><span class="p">(</span><span class="n">fn_with_sol</span><span class="p">)</span> <span class="k">if</span> <span class="n">jit</span> <span class="k">else</span> <span class="n">fn_with_sol</span>
+<a id="__codelineno-0-245" name="__codelineno-0-245"></a>        <span class="k">return</span> <span class="n">fn_with_sol</span>
+<a id="__codelineno-0-246" name="__codelineno-0-246"></a>
+<a id="__codelineno-0-247" name="__codelineno-0-247"></a>    <span class="k">return</span> <span class="n">inner_decorator</span>
 </code></pre></div></td></tr></table></div>
       </details>
   </div>

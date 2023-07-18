@@ -376,6 +376,29 @@
 </tr>
 </tbody>
 </table>
+<h1 id="differentiation"><code>differentiation</code></h1>
+<table>
+<thead>
+<tr>
+<th>name</th>
+<th>summary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="/sensitivity_jax/api/sensitivity_jax/differentiation/BATCH_HESSIAN">BATCH_HESSIAN(fn, config)</a></td>
+<td>Computes the Hessian, assuming the first in/out dimension is the batch.</td>
+</tr>
+<tr>
+<td><a href="/sensitivity_jax/api/sensitivity_jax/differentiation/BATCH_JACOBIAN">BATCH_JACOBIAN(fn, config)</a></td>
+<td>Computes the Hessian, assuming the first in/out dimension is the batch.</td>
+</tr>
+<tr>
+<td><a href="/sensitivity_jax/api/sensitivity_jax/differentiation/HESSIAN_DIAG">HESSIAN_DIAG(fn, config)</a></td>
+<td>Generates a function which computes per-argument partial Hessians.</td>
+</tr>
+</tbody>
+</table>
 <h1 id="extrasoptimizationagd"><code>extras.optimization.agd</code></h1>
 <table>
 <thead>
@@ -416,7 +439,7 @@
 </thead>
 <tbody>
 <tr>
-<td><a href="/sensitivity_jax/api/sensitivity_jax/extras/optimization/sqp/minimize_sqp">minimize_sqp(f_fn, g_fn, h_fn, args, reg0, verbose, verbose_prefix, max_it, ls_pts_nb, force_step, full_output, callback_fn, use_writer, use_tqdm, state, parallel_ls)</a></td>
+<td><a href="/sensitivity_jax/api/sensitivity_jax/extras/optimization/sqp/minimize_sqp">minimize_sqp(f_fn, g_fn, h_fn, args, reg0, verbose, verbose_prefix, max_it, ls_pts_nb, force_step, full_output, callback_fn, use_writer, use_tqdm, state, parallel_ls, jit)</a></td>
 <td>Minimizes an unconstrained objective using Sequential Quadratic Programming (SQP).</td>
 </tr>
 </tbody>
@@ -437,29 +460,6 @@
 <tr>
 <td><a href="/sensitivity_jax/api/sensitivity_jax/utils/fn_with_sol_cache">fn_with_sol_cache(fwd_fn, cache, jit, use_cache, kw_in_key, custom_arg_serializer)</a></td>
 <td>Wraps a function in a version where computation of the first argument via fwd_fn is cached.</td>
-</tr>
-</tbody>
-</table>
-<h1 id="differentiation"><code>differentiation</code></h1>
-<table>
-<thead>
-<tr>
-<th>name</th>
-<th>summary</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><a href="/sensitivity_jax/api/sensitivity_jax/differentiation/BATCH_HESSIAN">BATCH_HESSIAN(fn, config)</a></td>
-<td>Computes the Hessian, assuming the first in/out dimension is the batch.</td>
-</tr>
-<tr>
-<td><a href="/sensitivity_jax/api/sensitivity_jax/differentiation/BATCH_JACOBIAN">BATCH_JACOBIAN(fn, config)</a></td>
-<td>Computes the Hessian, assuming the first in/out dimension is the batch.</td>
-</tr>
-<tr>
-<td><a href="/sensitivity_jax/api/sensitivity_jax/differentiation/HESSIAN_DIAG">HESSIAN_DIAG(fn, config)</a></td>
-<td>Generates a function which computes per-argument partial Hessians.</td>
 </tr>
 </tbody>
 </table>
