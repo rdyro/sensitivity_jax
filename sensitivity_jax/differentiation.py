@@ -1,6 +1,6 @@
 from functools import reduce
 from operator import mul
-from math import prod
+from .utils import prod
 
 from jfi import jaxm
 

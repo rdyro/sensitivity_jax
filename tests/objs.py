@@ -1,17 +1,21 @@
 ################################################################################
-import unittest, pdb, time, os, sys, math
+import sys
+from pathlib import Path
+import time
+import math
 
-try:
-    import import_header
-except ModuleNotFoundError:
-    import tests.import_header
+paths = [Path(__file__).absolute().parent, Path(__file__).absolute().parents[1]]
+for path in paths:
+    if str(path) not in sys.path:
+        sys.path.append(str(path))
 
 from jfi import jaxm
 ################################################################################
 
 import torch, numpy as np
 
-from sensitivity_jax.extras.optimization import minimize_lbfgs, minimize_sqp
+from sensitivity_jax.extras.optimization.lbfgs import minimize_lbfgs
+from sensitivity_jax.extras.optimization.sqp import minimize_sqp
 from sensitivity_jax.utils import t2j
 from sensitivity_jax.extras.nn_tools import conv, nn_all_params, nn_forward_gen
 
@@ -125,7 +129,7 @@ class CE(OBJ):
             Y_ls = Y * 6 - 5
 
             W = LS().solve(X, Y_ls, lam)[..., :-1]
-            kw = dict(max_it=self.max_it, verbose=self.verbose)
+            kw = dict(max_it=self.max_it, verbose=True or self.verbose)
             if self.method == "sqp":
                 W = minimize_sqp(f_fn, g_fn, h_fn, W, **kw)
             else:

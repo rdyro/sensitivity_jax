@@ -1,0 +1,58 @@
+theme:
+    name: material
+    features:
+        - navigation.sections  # Sections are included in the navigation on the left.
+        - toc.integrate  # Table of contents is integrated on the left; does not appear separately on the right.
+        - header.autohide  # header disappears as you scroll
+        - search.suggest
+        - search.highlight
+    palette:
+        - scheme: default
+          primary: deep purple
+    #logo: "images/delta.png"  # logo in top left
+    logo: "images/icon.svg"  # logo in top left
+    favicon: "images/icon.svg"
+extra_css:
+    - "static/extra.css"
+
+site_name: sensitivity_jax
+site_description: The documentation for the sensitivity_jax package.
+site_author: Robert Dyro 
+site_url: https://rdyro.github.io/sensitivity_jax/
+
+repo_url: https://github.com/rdyro/sensitivity_jax/
+repo_name: rdyro/sensitivity_jax
+
+strict: false
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences:
+  - toc:
+      toc_depth: 2
+
+hooks:
+    - build_api_ref.py
+
+plugins:
+    - search 
+    - autorefs
+    - mkdocstrings:
+        handlers:
+            python:
+                setup_commands:
+                    - import pytkdocs_tweaks
+                    - pytkdocs_tweaks.main()
+                options:
+                    inherited_members: true
+                    show_root_heading: true
+                    show_if_no_docstring: true
+                    show_signature_annotations: false
+                    heading_level: 4
+                    members_order: source
+nav:
+    - Overview: 'index.md'
+    - Installation: 'installation.md'
+    - Tour: 'tour.md'
+    - Full API: 'api/overview.md'

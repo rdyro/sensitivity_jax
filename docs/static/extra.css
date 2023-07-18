@@ -1,0 +1,31 @@
+table {
+    width: 100%;
+}
+
+.md-typeset__table {
+   min-width: 100%;
+}
+
+.md-typeset table:not([class]) {
+    display: table;
+}
+
+.container {
+    position: relative;
+}
+
+.left-div {
+    position: absolute;
+    left: 0;
+    padding: 2px;
+    margin: 2px;
+    text-align: left;
+}
+
+.right-div {
+    position: absolute;
+    right: 0;
+    padding: 2px;
+    margin: 2px;
+    text-align: right;
+}

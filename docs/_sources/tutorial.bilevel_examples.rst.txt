@@ -1,4 +1,0 @@
-Bilevel Programming Examples
-============================
-
-TODO

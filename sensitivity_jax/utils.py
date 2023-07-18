@@ -1,13 +1,19 @@
 ##^# ops import and utils ######################################################
+from __future__ import annotations
+
 import math
+from functools import reduce
+from operator import mul
 from typing import Dict, Optional, Callable
 
-from jfi import jaxm 
+from jfi import jaxm
 
 import numpy as np
-from torch.utils.tensorboard import SummaryWriter
+from tensorboardX import SummaryWriter
+import jax
+from jax import Array
 
-from math import prod
+prod = lambda xs: reduce(mul, xs, 1)
 
 ##$#############################################################################
 ##^# general utils #############################################################
@@ -108,7 +114,7 @@ class TablePrinter:
     def make_header(self):
         s = self.prefix + self.make_row_sep() + "\n"
         s += self.prefix
-        for (name, width) in zip(self.names, self.widths):
+        for name, width in zip(self.names, self.widths):
             s += "|" + self.pad_field("%s" % name, width, lj=True)
         s += "|\n"
         return s + self.prefix + self.make_row_sep()
@@ -119,12 +125,12 @@ class TablePrinter:
     def make_values(self, vals):
         assert len(vals) == len(self.fmts)
         s = self.prefix + ""
-        for (val, fmt, width) in zip(vals, self.fmts, self.widths):
+        for val, fmt, width in zip(vals, self.fmts, self.widths):
             s += "|" + self.pad_field(fmt % val, width, lj=False)
         s += "|"
 
         if self.writer is not None:
-            for (name, val) in zip(self.names, vals):
+            for name, val in zip(self.names, vals):
                 self.writer.add_scalar(name, val, self.iteration)
             self.iteration += 1
 
@@ -145,7 +151,7 @@ class TablePrinter:
 def to_tuple_(arg):
     if isinstance(arg, np.ndarray):
         return arg.tobytes()
-    elif isinstance(arg, jaxm.jax.Array):
+    elif isinstance(arg, Array):
         return arg.tobytes()
     elif isinstance(arg, (list, tuple)):
         return tuple(to_tuple_(x) for x in arg)
@@ -156,13 +162,18 @@ def to_tuple_(arg):
     else:
         return to_tuple_(np.array(arg))
 
+
 def to_tuple(*args):
     return tuple(to_tuple_(arg) for arg in args)
 
+
 def to_tuple_with_kw(*args, **kw):
-    kw = dict(kw)
-    sorted_keys = sorted(kw.keys())
-    args_ = tuple(args) + tuple(sorted_keys) + tuple(kw[k] for k in sorted_keys)
+    if len(kw) > 0:
+        kw = dict(kw)
+        sorted_keys = sorted(kw.keys())
+        args_ = tuple(args) + tuple(sorted_keys) + tuple(kw[k] for k in sorted_keys)
+    else:
+        args_ = tuple(args)
     sol_key = to_tuple(*args_)
     return sol_key
 
@@ -173,6 +184,7 @@ def fn_with_sol_cache(
     jit: bool = True,
     use_cache: bool = True,
     kw_in_key: bool = True,
+    custom_arg_serializer: Optional[Callable] = None,
 ):
     """Wraps a function in a version where computation of the first argument via fwd_fn is cached.
 
@@ -183,28 +195,54 @@ def fn_with_sol_cache(
         use_cache (bool, optional): Whether to use the cache at all. Defaults to True.
         kw_in_key(bool, optional): Whether to use keyword arguments in key. Defaults to True.
     """
+    def retrieve_solution(*args, **kw):
+        self = retrieve_solution
+        sol_key = to_tuple_with_kw(*args, **kw) if kw_in_key else to_tuple(*args)
+        if custom_arg_serializer is None:
+            sol_key = to_tuple_with_kw(*args, **kw) if kw_in_key else to_tuple(*args)
+        else:
+            sol_key = (
+                custom_arg_serializer(*args, **kw)
+                if kw_in_key
+                else custom_arg_serializer(*args)
+            )
+        sol = fwd_fn(*args, **kw) if sol_key not in self.cache else self.cache[sol_key]
+        sol = jax.device_put(sol, jax.devices("cpu")[0])
+        if use_cache:
+            self.cache.setdefault(sol_key, sol)
+        return sol
+
 
     def inner_decorator(fn):
         nonlocal cache
         cache = cache if cache is None else dict()
-        fwd_fn_ = fwd_fn # assume already jit-ed
+        retrieve_solution.cache = cache
+        fwd_fn_ = fwd_fn  # assume already jit-ed
 
         def fn_with_sol(*args, **kw):
-            if not kw_in_key:
-                cache, sol_key = fn_with_sol.cache, to_tuple(*args)
-            else:
-                cache, sol_key = fn_with_sol.cache, to_tuple_with_kw(*args, **kw)
-            sol = fwd_fn_(*args, **kw) if sol_key not in cache else cache[sol_key]
-            if use_cache:
-                cache.setdefault(sol_key, sol)
-            ret = fn_with_sol.fn(sol, *args, **kw)
+            #cache = fn_with_sol.cache
+            #if custom_arg_serializer is None:
+            #    sol_key = to_tuple_with_kw(*args, **kw) if kw_in_key else to_tuple(*args)
+            #else:
+            #    sol_key = (
+            #        custom_arg_serializer(*args, **kw)
+            #        if kw_in_key
+            #        else custom_arg_serializer(*args)
+            #    )
+            #sol = fwd_fn_(*args, **kw) if sol_key not in cache else cache[sol_key]
+            sol_shape_dtype = jax.eval_shape(fwd_fn_, *args, **kw)
+            sol = jax.pure_callback(retrieve_solution, sol_shape_dtype, *args, **kw)
+            #ret = fn_with_sol.fn(sol, *args, **kw)
+            ret = fn(sol, *args, **kw)
             return ret
 
         fn_with_sol.cache = cache
-        fn_with_sol.fn = jaxm.jit(fn) if jit else fn
+        #fn_with_sol.fn = jaxm.jit(fn) if jit else fn
+        fn_with_sol = jaxm.jit(fn_with_sol) if jit else fn_with_sol
         return fn_with_sol
 
     return inner_decorator
+
 
 def fn_with_sol_and_state_cache(
     fwd_fn: Callable,
@@ -212,6 +250,7 @@ def fn_with_sol_and_state_cache(
     jit: bool = True,
     use_cache: bool = True,
     kw_in_key: bool = True,
+    custom_arg_serializer: Optional[Callable] = None,
 ):
     """Wraps a function in a version where computation of the first argument via fwd_fn is cached.
 
@@ -226,13 +265,18 @@ def fn_with_sol_and_state_cache(
     def inner_decorator(fn):
         nonlocal cache
         cache = cache if cache is None else dict()
-        fwd_fn_ = fwd_fn # assume already jit-ed
+        fwd_fn_ = fwd_fn  # assume already jit-ed
 
         def fn_with_sol(*args, **kw):
-            if not kw_in_key:
-                cache, sol_key = fn_with_sol.cache, to_tuple(*args)
+            cache = fn_with_sol.cache
+            if custom_arg_serializer is None:
+                sol_key = to_tuple_with_kw(*args, **kw) if kw_in_key else to_tuple(*args)
             else:
-                cache, sol_key = fn_with_sol.cache, to_tuple_with_kw(*args, **kw)
+                sol_key = (
+                    custom_arg_serializer(*args, **kw)
+                    if kw_in_key
+                    else custom_arg_serializer(*args)
+                )
             sol, state = fwd_fn_(*args, **kw) if sol_key not in cache else cache[sol_key]
             if use_cache:
                 cache.setdefault(sol_key, (sol, state))

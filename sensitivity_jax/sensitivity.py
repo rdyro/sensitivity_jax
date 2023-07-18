@@ -1,4 +1,4 @@
-from typing import Callable, Mapping, Sequence, Union
+from typing import Callable, Mapping, Sequence, Union, Optional
 from copy import copy
 
 import numpy as np
@@ -31,15 +31,11 @@ def _generate_default_Dzk_solve_fn(optimizations: Mapping, k_fn: Callable):
         Dzk = optimizations["Dzk"]
         if T:
             if optimizations.get("FT", None) is None:
-                optimizations["FT"] = jaxm.linalg.lu_factor(
-                    jaxm.t(Dzk.reshape((zlen, zlen)))
-                )
+                optimizations["FT"] = jaxm.linalg.lu_factor(jaxm.t(Dzk.reshape((zlen, zlen))))
             return jaxm.linalg.lu_solve(optimizations["FT"], rhs)
         else:
             if optimizations.get("F", None) is None:
-                optimizations["F"] = jaxm.linalg.lu_factor(
-                    jaxm.t(Dzk.reshape((zlen, zlen)))
-                )
+                optimizations["F"] = jaxm.linalg.lu_factor(jaxm.t(Dzk.reshape((zlen, zlen))))
             return jaxm.linalg.lu_solve(optimizations["F"], rhs)
 
     optimizations["Dzk_solve_fn"] = Dzk_solve_fn
@@ -95,17 +91,13 @@ def implicit_jacobian(
     if Dg is not None:
         if matrix_free_inverse:
             A_fn = lambda x: JACOBIAN(
-                lambda z: jaxm.sum(
-                    k_fn_(z, *params).reshape(-1) * x.reshape(-1)
-                )
+                lambda z: jaxm.sum(k_fn_(z, *params).reshape(-1) * x.reshape(-1))
             )(z).reshape(x.shape)
             v = -solve_gmres(A_fn, Dg.reshape((zlen, 1)), max_it=300)
         else:
             Dzk_solve_fn = optimizations["Dzk_solve_fn"]
             v = -Dzk_solve_fn(z, *params, rhs=Dg.reshape((zlen, 1)), T=True)
-        fn = lambda *params: jaxm.sum(
-            v.reshape(zlen) * k_fn_(z, *params).reshape(zlen)
-        )
+        fn = lambda *params: jaxm.sum(v.reshape(zlen) * k_fn_(z, *params).reshape(zlen))
         Dp = JACOBIAN(fn, argnums=range(len(params)))(*params)
         Dp_shaped = [Dp.reshape(param.shape) for (Dp, param) in zip(Dp, params)]
         ret = Dp_shaped[0] if len(params) == 1 else Dp_shaped
@@ -128,10 +120,7 @@ def implicit_jacobian(
         if jvp_vec is not None:
             Dpz_shaped = [Dpz.reshape(z.shape) for Dpz in Dpz]
         else:
-            Dpz_shaped = [
-                Dpz.reshape(z.shape + param.shape)
-                for (Dpz, param) in zip(Dpz, params)
-            ]
+            Dpz_shaped = [Dpz.reshape(z.shape + param.shape) for (Dpz, param) in zip(Dpz, params)]
         ret = Dpz_shaped if len(params) != 1 else Dpz_shaped[0]
     return (ret, optimizations) if full_output else ret
 
@@ -181,7 +170,7 @@ def implicit_hessian(
     # compute 2nd implicit gradients
     if Dg is not None:
         assert Dg.size == zlen
-        assert Hg is None or Hg.size == zlen ** 2
+        assert Hg is None or Hg.size == zlen**2
 
         Dg_ = Dg.reshape((zlen, 1))
         Hg_ = Hg.reshape((zlen, zlen)) if Hg is not None else Hg
@@ -189,9 +178,7 @@ def implicit_hessian(
         # compute the left hand vector in the VJP
         Dzk_solve_fn = optimizations["Dzk_solve_fn"]
         v = -Dzk_solve_fn(z, *params, rhs=Dg_.reshape((zlen, 1)), T=True)
-        fn = lambda z, *params: jaxm.sum(
-            v.reshape(zlen) * k_fn_(z, *params).reshape(zlen)
-        )
+        fn = lambda z, *params: jaxm.sum(v.reshape(zlen) * k_fn_(z, *params).reshape(zlen))
 
         if jvp_vec is not None:
             Dpz_jvp = _ensure_list(
@@ -208,9 +195,7 @@ def implicit_hessian(
 
             # compute the 2nd order derivatives consisting of 4 terms
             # term 1 ##############################
-            dfn_params = jaxm.grad(
-                lambda *params: fn(z, *params), argnums=range(len(params))
-            )
+            dfn_params = jaxm.grad(lambda *params: fn(z, *params), argnums=range(len(params)))
             Dpp1 = _ensure_list(jaxm.jvp(dfn_params, params, tuple(jvp_vec))[1])
             Dpp1 = [Dpp1.reshape(plen) for (Dpp1, plen) in zip(Dpp1, plen)]
 
@@ -273,17 +258,12 @@ def implicit_hessian(
                 )[i].reshape(plen)
                 for ((i, g_), plen) in zip(enumerate(g_), plen)
             ]
-            Dp = [
-                Dg_.reshape((1, zlen)) @ Dpz_jvp.reshape(zlen)
-                for Dpz_jvp in Dpz_jvp
-            ]
+            Dp = [Dg_.reshape((1, zlen)) @ Dpz_jvp.reshape(zlen) for Dpz_jvp in Dpz_jvp]
             Dpp = [sum(Dpp) for Dpp in zip(Dpp1, Dpp2, Dpp3, Dpp4)]
 
             # return the results
             Dp_shaped = [Dp.reshape(()) for Dp in Dp]
-            Dpp_shaped = [
-                Dpp.reshape(param.shape) for (Dpp, param) in zip(Dpp, params)
-            ]
+            Dpp_shaped = [Dpp.reshape(param.shape) for (Dpp, param) in zip(Dpp, params)]
         else:
             # compute the full first order 1st gradients
             Dpz = _ensure_list(
@@ -299,21 +279,15 @@ def implicit_hessian(
 
             # compute the 2nd order derivatives consisting of 4 terms
             Dpp1 = HESSIAN_DIAG(lambda *params: fn(z, *params))(*params)
-            Dpp1 = [
-                Dpp1.reshape((plen, plen)) for (Dpp1, plen) in zip(Dpp1, plen)
-            ]
+            Dpp1 = [Dpp1.reshape((plen, plen)) for (Dpp1, plen) in zip(Dpp1, plen)]
 
             temp = JACOBIAN(
                 lambda *params: JACOBIAN(fn)(z, *params),
                 argnums=range(len(params)),
             )(*params)
-            temp = [
-                jaxm.t(temp.reshape((zlen, plen)))
-                for (temp, plen) in zip(temp, plen)
-            ]
+            temp = [jaxm.t(temp.reshape((zlen, plen))) for (temp, plen) in zip(temp, plen)]
             Dpp2 = [
-                (temp @ Dpz).reshape((plen, plen))
-                for (temp, Dpz, plen) in zip(temp, Dpz, plen)
+                (temp @ Dpz).reshape((plen, plen)) for (temp, Dpz, plen) in zip(temp, Dpz, plen)
             ]
             Dpp3 = [jaxm.t(Dpp2) for Dpp2 in Dpp2]
             Dzz = HESSIAN(lambda z: fn(z, *params))(z).reshape((zlen, zlen))
@@ -325,18 +299,11 @@ def implicit_hessian(
             Dpp = [sum(Dpp) for Dpp in zip(Dpp1, Dpp2, Dpp3, Dpp4)]
 
             # return the results
-            Dp_shaped = [
-                Dp.reshape(param.shape) for (Dp, param) in zip(Dp, params)
-            ]
+            Dp_shaped = [Dp.reshape(param.shape) for (Dp, param) in zip(Dp, params)]
             Dpp_shaped = [
-                Dpp.reshape(param.shape + param.shape)
-                for (Dpp, param) in zip(Dpp, params)
+                Dpp.reshape(param.shape + param.shape) for (Dpp, param) in zip(Dpp, params)
             ]
-        return (
-            (Dp_shaped[0], Dpp_shaped[0])
-            if len(params) == 1
-            else (Dp_shaped, Dpp_shaped)
-        )
+        return (Dp_shaped[0], Dpp_shaped[0]) if len(params) == 1 else (Dp_shaped, Dpp_shaped)
     else:
         Dpz, optimizations = implicit_jacobian(
             k_fn,
@@ -355,20 +322,14 @@ def implicit_hessian(
             Dzzk, Dppk = Hk[0], Hk[1:]
             optimizations["Dzzk"] = Dzzk
         else:
-            Dppk = HESSIAN_DIAG(lambda *params: k_fn_(z, *params))(
-                *params
-            )
+            Dppk = HESSIAN_DIAG(lambda *params: k_fn_(z, *params))(*params)
         Dzpk = JACOBIAN(
             lambda *params: JACOBIAN(k_fn_)(z, *params),
             argnums=range(len(params)),
         )(*params)
-        Dppk = [
-            Dppk.reshape((zlen, plen, plen)) for (Dppk, plen) in zip(Dppk, plen)
-        ]
+        Dppk = [Dppk.reshape((zlen, plen, plen)) for (Dppk, plen) in zip(Dppk, plen)]
         Dzzk = Dzzk.reshape((zlen, zlen, zlen))
-        Dzpk = [
-            Dzpk.reshape((zlen, zlen, plen)) for (Dzpk, plen) in zip(Dzpk, plen)
-        ]
+        Dzpk = [Dzpk.reshape((zlen, zlen, plen)) for (Dzpk, plen) in zip(Dzpk, plen)]
         Dpzk = [jaxm.t(Dzpk) for Dzpk in Dzpk]
 
         # solve the IFT equation
@@ -381,26 +342,18 @@ def implicit_hessian(
         ]
         Dzk_solve_fn = optimizations["Dzk_solve_fn"]
         Dppz = [
-            -Dzk_solve_fn(
-                z, *params, rhs=lhs.reshape((zlen, plen * plen)), T=False
-            ).reshape((zlen, plen, plen))
+            -Dzk_solve_fn(z, *params, rhs=lhs.reshape((zlen, plen * plen)), T=False).reshape(
+                (zlen, plen, plen)
+            )
             for (lhs, plen) in zip(lhs, plen)
         ]
 
         # return computed values
-        Dpz_shaped = [
-            Dpz.reshape(z.shape + param.shape)
-            for (Dpz, param) in zip(Dpz, params)
-        ]
+        Dpz_shaped = [Dpz.reshape(z.shape + param.shape) for (Dpz, param) in zip(Dpz, params)]
         Dppz_shaped = [
-            Dppz.reshape(z.shape + param.shape + param.shape)
-            for (Dppz, param) in zip(Dppz, params)
+            Dppz.reshape(z.shape + param.shape + param.shape) for (Dppz, param) in zip(Dppz, params)
         ]
-        return (
-            (Dpz_shaped[0], Dppz_shaped[0])
-            if len(params) == 1
-            else (Dpz_shaped, Dppz_shaped)
-        )
+        return (Dpz_shaped[0], Dppz_shaped[0]) if len(params) == 1 else (Dpz_shaped, Dppz_shaped)
 
 
 def generate_optimization_fns(
@@ -410,6 +363,7 @@ def generate_optimization_fns(
     normalize_grad: bool = False,
     optimizations: Mapping = None,
     jit: bool = True,
+    custom_arg_serializer: Optional[Callable] = None,
 ):
     """Directly generates upper/outer bilevel program derivative functions.
 
@@ -426,11 +380,11 @@ def generate_optimization_fns(
     sol_cache = {}
     optimizations = {} if optimizations is None else copy(optimizations)
 
-    @fn_with_sol_cache(opt_fn, sol_cache, jit=jit)
+    @fn_with_sol_cache(opt_fn, sol_cache, jit=jit, custom_arg_serializer=custom_arg_serializer)
     def f_fn(z, *params, **nondiff_kw):
         return loss_fn(z, *params, **nondiff_kw)
 
-    @fn_with_sol_cache(opt_fn, sol_cache, jit=jit)
+    @fn_with_sol_cache(opt_fn, sol_cache, jit=jit, custom_arg_serializer=custom_arg_serializer)
     def g_fn(z, *params, **nondiff_kw):
         g = JACOBIAN(loss_fn, argnums=range(len(params) + 1))(z, *params, **nondiff_kw)
         Dp = implicit_jacobian(
@@ -447,10 +401,9 @@ def generate_optimization_fns(
             ret = [(z / (jaxm.norm(z) + 1e-7)) for z in ret]
         return ret[0] if len(ret) == 1 else ret
 
-    @fn_with_sol_cache(opt_fn, sol_cache, jit=jit)
+    @fn_with_sol_cache(opt_fn, sol_cache, jit=jit, custom_arg_serializer=custom_arg_serializer)
     def h_fn(z, *params, **nondiff_kw):
-        g = JACOBIAN(loss_fn, argnums=range(len(params) + 1))(z, *params,
-                **nondiff_kw)
+        g = JACOBIAN(loss_fn, argnums=range(len(params) + 1))(z, *params, **nondiff_kw)
 
         if optimizations.get("Hz_fn", None) is None:
             optimizations["Hz_fn"] = jaxm.hessian(loss_fn)
@@ -481,6 +434,7 @@ def generate_optimization_with_state_fns(
     normalize_grad: bool = False,
     optimizations: Mapping = None,
     jit: bool = True,
+    custom_arg_serializer: Optional[Callable] = None,
 ):
     """Directly generates upper/outer bilevel program derivative functions.
 
@@ -497,11 +451,15 @@ def generate_optimization_with_state_fns(
     sol_cache = {}
     optimizations = {} if optimizations is None else copy(optimizations)
 
-    @fn_with_sol_and_state_cache(opt_fn, sol_cache, jit=jit)
+    @fn_with_sol_and_state_cache(
+        opt_fn, sol_cache, jit=jit, custom_arg_serializer=custom_arg_serializer
+    )
     def f_fn(z, *params, **nondiff_kw):
         return loss_fn(z, *params, **nondiff_kw)
 
-    @fn_with_sol_and_state_cache(opt_fn, sol_cache, jit=jit)
+    @fn_with_sol_and_state_cache(
+        opt_fn, sol_cache, jit=jit, custom_arg_serializer=custom_arg_serializer
+    )
     def g_fn(z, *params, **nondiff_kw):
         g = JACOBIAN(loss_fn, argnums=range(len(params) + 1))(z, *params, **nondiff_kw)
         Dp = implicit_jacobian(
@@ -518,10 +476,11 @@ def generate_optimization_with_state_fns(
             ret = [(z / (jaxm.norm(z) + 1e-7)) for z in ret]
         return ret[0] if len(ret) == 1 else ret
 
-    @fn_with_sol_and_state_cache(opt_fn, sol_cache, jit=jit)
+    @fn_with_sol_and_state_cache(
+        opt_fn, sol_cache, jit=jit, custom_arg_serializer=custom_arg_serializer
+    )
     def h_fn(z, *params, **nondiff_kw):
-        g = JACOBIAN(loss_fn, argnums=range(len(params) + 1))(z, *params,
-                **nondiff_kw)
+        g = JACOBIAN(loss_fn, argnums=range(len(params) + 1))(z, *params, **nondiff_kw)
 
         if optimizations.get("Hz_fn", None) is None:
             optimizations["Hz_fn"] = jaxm.hessian(loss_fn)

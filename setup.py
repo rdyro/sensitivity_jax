@@ -29,6 +29,7 @@ setup(
         "scipy",
         "tqdm",
         "matplotlib",
+        "joblib",
     ],
     long_description=read("README.md"),
 )
