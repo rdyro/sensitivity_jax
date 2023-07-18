@@ -32,6 +32,7 @@ def minimize_sqp(
     use_tqdm: Union[bool, tqdm_module.std.tqdm, tqdm_module.notebook.tqdm_notebook] = False,
     state: Optional[Dict[str, Any]] = None,
     parallel_ls: bool = False,
+    jit: bool = False,
 ) -> Array | tuple[Array, list[Array], dict[str, Any]]:
     """
     Minimizes an unconstrained objective using Sequential Quadratic Programming (SQP).
@@ -53,6 +54,7 @@ def minimize_sqp(
         use_tqdm (Union[bool, tqdm_module.std.tqdm, tqdm_module.notebook.tqdm_notebook], optional): If True, uses tqdm to print the progress. Defaults to False.
         state (Optional[Dict[str, Any]], optional): A dictionary containing the optimization state. Defaults to None.
         parallel_ls (bool, optional): If True, uses parallel line search. Defaults to False.
+        jit (bool, optional): If True, jits the optimization functions. Defaults to False.
 
     Returns:
         Optimized parameters or a tuple with extra information if `full_output` is True.
@@ -61,12 +63,12 @@ def minimize_sqp(
     state = state if state is not None else dict()
     arg = args[0]
     if "opt" not in state:
-        opt = SQPSolver(
+        opt: SQPSolver = SQPSolver(
             #f_fn, g_fn=g_fn, h_fn=h_fn, linesearch="scan", maxls=ls_pts_nb, device=arg.device()
-            f_fn, g_fn=g_fn, h_fn=h_fn, linesearch="scan", maxls=ls_pts_nb, force_step=force_step
+            f_fn, g_fn=g_fn, h_fn=h_fn, linesearch="scan", maxls=ls_pts_nb, force_step=force_step, jit=jit
         )
     else:
-        opt = state["opt"]
+        opt: SQPSolver = state["opt"]
     opt_state = opt.init_state(arg) if "opt_state" not in state else state["opt_state"]
 
     if isinstance(use_tqdm, bool):
@@ -196,13 +198,14 @@ def _positive_factorization_cholesky(H, reg0):
 def _positive_factorization_lobpcg(H, reg0):
     reg = jaxm.min(jaxm.linalg.eigvalsh(H.reshape((H.shape[-1], H.shape[-1]))).real)
     reg = reg.reshape(-1)[0]
+    print(f"reg = {max(max(-2.0 * reg, 0.0), reg0)}")
     return _positive_factorization_cholesky(H, max(max(-2.0 * reg, 0.0), reg0))
 
 
 ####################################################################################################
 
 
-def _minimize_sqp2(
+def _minimize_sqp(
     f_fn: Callable,
     g_fn: Callable,
     h_fn: Callable,

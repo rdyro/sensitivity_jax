@@ -20,6 +20,14 @@
 |   [implicit_jacobian2(k_fn, z, params, nondiff_kw, Dg, jvp_vec, matrix_free_inverse, full_output, optimizations)](/sensitivity_jax/api/sensitivity_jax/batch_sensitivity/implicit_jacobian2)   |         Computes the implicit Jacobian or VJP or JVP depending on Dg, jvp_vec, using vmap.          |
 
 
+# `differentiation`
+
+|                                               name                                                |                                 summary                                 |
+|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+|  [BATCH_HESSIAN(fn, config)](/sensitivity_jax/api/sensitivity_jax/differentiation/BATCH_HESSIAN)  | Computes the Hessian, assuming the first in/out dimension is the batch. |
+| [BATCH_JACOBIAN(fn, config)](/sensitivity_jax/api/sensitivity_jax/differentiation/BATCH_JACOBIAN) | Computes the Hessian, assuming the first in/out dimension is the batch. |
+|   [HESSIAN_DIAG(fn, config)](/sensitivity_jax/api/sensitivity_jax/differentiation/HESSIAN_DIAG)   |   Generates a function which computes per-argument partial Hessians.    |
+
 
 # `extras.optimization.agd`
 
@@ -37,10 +45,9 @@
 
 # `extras.optimization.sqp`
 
-|                                                                                                                        name                                                                                                                         |                                       summary                                       |
-|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------|
-| [minimize_sqp(f_fn, g_fn, h_fn, args, reg0, verbose, verbose_prefix, max_it, ls_pts_nb, force_step, full_output, callback_fn, use_writer, use_tqdm, state, parallel_ls)](/sensitivity_jax/api/sensitivity_jax/extras/optimization/sqp/minimize_sqp) |  Minimizes an unconstrained objective using Sequential Quadratic Programming (SQP). |
-
+|                                                                                                                           name                                                                                                                           |                                       summary                                       |
+|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------|
+| [minimize_sqp(f_fn, g_fn, h_fn, args, reg0, verbose, verbose_prefix, max_it, ls_pts_nb, force_step, full_output, callback_fn, use_writer, use_tqdm, state, parallel_ls, jit)](/sensitivity_jax/api/sensitivity_jax/extras/optimization/sqp/minimize_sqp) |  Minimizes an unconstrained objective using Sequential Quadratic Programming (SQP). |
 
 
 # `utils`
@@ -49,12 +56,3 @@
 |------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
 | [fn_with_sol_and_state_cache(fwd_fn, cache, jit, use_cache, kw_in_key, custom_arg_serializer)](/sensitivity_jax/api/sensitivity_jax/utils/fn_with_sol_and_state_cache) | Wraps a function in a version where computation of the first argument via fwd_fn is cached. |
 |           [fn_with_sol_cache(fwd_fn, cache, jit, use_cache, kw_in_key, custom_arg_serializer)](/sensitivity_jax/api/sensitivity_jax/utils/fn_with_sol_cache)           | Wraps a function in a version where computation of the first argument via fwd_fn is cached. |
-
-
-# `differentiation`
-
-|                                               name                                                |                                 summary                                 |
-|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
-|  [BATCH_HESSIAN(fn, config)](/sensitivity_jax/api/sensitivity_jax/differentiation/BATCH_HESSIAN)  | Computes the Hessian, assuming the first in/out dimension is the batch. |
-| [BATCH_JACOBIAN(fn, config)](/sensitivity_jax/api/sensitivity_jax/differentiation/BATCH_JACOBIAN) | Computes the Hessian, assuming the first in/out dimension is the batch. |
-|   [HESSIAN_DIAG(fn, config)](/sensitivity_jax/api/sensitivity_jax/differentiation/HESSIAN_DIAG)   |   Generates a function which computes per-argument partial Hessians.    |

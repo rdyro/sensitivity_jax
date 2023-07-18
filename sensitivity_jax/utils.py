@@ -230,8 +230,11 @@ def fn_with_sol_cache(
             #        else custom_arg_serializer(*args)
             #    )
             #sol = fwd_fn_(*args, **kw) if sol_key not in cache else cache[sol_key]
-            sol_shape_dtype = jax.eval_shape(fwd_fn_, *args, **kw)
-            sol = jax.pure_callback(retrieve_solution, sol_shape_dtype, *args, **kw)
+            if jit:
+                sol_shape_dtype = jax.eval_shape(fwd_fn_, *args, **kw)
+                sol = jax.pure_callback(retrieve_solution, sol_shape_dtype, *args, **kw)
+            else:
+                sol = retrieve_solution(*args, **kw)
             #ret = fn_with_sol.fn(sol, *args, **kw)
             ret = fn(sol, *args, **kw)
             return ret

@@ -38,7 +38,7 @@ class ConvexSolver(base.IterativeSolver):
         reg0=1e-6,
         linesearch="scan",
         force_step: bool = False,
-        #device="cpu",
+        # device="cpu",
         g_fn: Callable | None = None,
         h_fn: Callable | None = None,
     ):
@@ -62,7 +62,7 @@ class ConvexSolver(base.IterativeSolver):
         self.tol, self.reg0 = tol, reg0
         self.verbose = verbose
         self.force_step = force_step
-        #self.device = device
+        # self.device = device
         assert linesearch.lower() in ["scan", "backtracking", "binary_search"]
         if linesearch.lower() == "scan":
             self.linesearch = LineSearch.scan
@@ -142,9 +142,7 @@ class ConvexSolver(base.IterativeSolver):
                 0.0, jaxm.log10(self.max_stepsize), self.maxls - lower_ls, dtype=dtype
             )[1:]
             bets = jaxm.cat([bets_low, bets_up], -1)
-            losses = jaxm.jax.vmap(
-                lambda bet: self.f_fn(params + bet * dp, *args, **kw)
-            )(bets)
+            losses = jaxm.jax.vmap(lambda bet: self.f_fn(params + bet * dp, *args, **kw))(bets)
             losses = jaxm.where(jaxm.isnan(losses), jaxm.inf, losses)
             idx = jaxm.argmin(losses)
             bet, new_loss = bets[idx], losses[idx]
@@ -153,9 +151,7 @@ class ConvexSolver(base.IterativeSolver):
 
             def cond_fn(step):
                 step_not_too_small = step >= self.min_stepsize
-                not_better_loss = (
-                    self.f_fn(params + step * dp, *args, **kw) > state.best_loss
-                )
+                not_better_loss = self.f_fn(params + step * dp, *args, **kw) > state.best_loss
                 return jaxm.logical_and(step_not_too_small, not_better_loss)
 
             def body_fn(step):
@@ -188,9 +184,7 @@ class ConvexSolver(base.IterativeSolver):
         else:
             raise ValueError(f"Unknown line search method {self.linesearch}")
 
-        best_params = jaxm.where(
-            new_loss <= state.best_loss, new_params, state.best_params
-        )
+        best_params = jaxm.where(new_loss <= state.best_loss, new_params, state.best_params)
         best_loss = jaxm.where(new_loss <= state.best_loss, new_loss, state.best_loss)
         state = ConvexState(best_params, best_loss, best_loss)
         if not self.force_step:
@@ -203,31 +197,29 @@ cho_factor = jaxm.scipy.linalg.cho_factor
 device = jaxm.jax.devices("cpu")[0]
 
 
-#@partial(jaxm.jit, static_argnames=("device", "max_iter"))
-#def _find_cholesky_factorization(H, Fl, laml, lamr=1e3, device=device, max_iter=10):
 @partial(jaxm.jit, static_argnames=("max_iter",))
-def _find_cholesky_factorization(H, Fl, laml, lamr=1e3, max_iter=10):
+def _find_cholesky_factorization(H, Fl, laml, max_iter):
     # find the right lambda ###########################
     def cond_fn(lam_F):
-        _, F = lam_F
+        _, _, F = lam_F
         return jaxm.logical_not(jaxm.isfinite(F[0][0, 0]))
 
     def body_fn(lam_F):
-        lam, _ = lam_F
-        lam = lam * 5
-        #F = cho_factor(H + lam * jaxm.eye(H.shape[-1], dtype=H.dtype, device=device))
+        _, lam, _ = lam_F
+        lam, lam_prev = lam * 5, lam
+        # F = cho_factor(H + lam * jaxm.eye(H.shape[-1], dtype=H.dtype, device=device))
         F = cho_factor(H + lam * jnp.eye(H.shape[-1], dtype=H.dtype))
-        return (lam, F)
+        return (lam_prev, lam, F)
 
-    #Fr = cho_factor(H + lamr * jaxm.eye(H.shape[-1], dtype=H.dtype, device=device))
-    Fr = cho_factor(H + lamr * jnp.eye(H.shape[-1], dtype=H.dtype))
-    lamr, Fr = jaxm.jax.lax.while_loop(cond_fn, body_fn, (lamr, Fr))
+    # Fr = cho_factor(H + lamr * jaxm.eye(H.shape[-1], dtype=H.dtype, device=device))
+    F = cho_factor(H + laml * jnp.eye(H.shape[-1], dtype=H.dtype))
+    laml, lamr, Fr = jaxm.jax.lax.while_loop(cond_fn, body_fn, (laml, laml, F))
 
     # find the middle lambda via bisection ############
     def body_fn(i, val):
         laml, lamr, Fl, Fr = val
         lamm = (laml + lamr) / 2.0
-        #Fm = cho_factor(H + lamm * jaxm.eye(H.shape[-1], dtype=H.dtype, device=device))
+        # Fm = cho_factor(H + lamm * jaxm.eye(H.shape[-1], dtype=H.dtype, device=device))
         Fm = cho_factor(H + lamm * jnp.eye(H.shape[-1], dtype=H.dtype))
         cond = jaxm.isfinite(Fm[0][0, 0])
         laml, lamr = jaxm.where(cond, laml, lamm), jaxm.where(cond, lamm, lamr)
@@ -235,25 +227,18 @@ def _find_cholesky_factorization(H, Fl, laml, lamr=1e3, max_iter=10):
         Fr = (jaxm.where(cond, Fm[0], Fr[0]), jaxm.where(cond, Fm[1], Fr[1]))
         return (laml, lamr, Fl, Fr)
 
-    laml, lamr, Fl, Fr = jaxm.jax.lax.fori_loop(
-        0, max_iter, body_fn, (laml, lamr, Fl, Fr)
-    )
+    laml, lamr, Fl, Fr = jaxm.jax.lax.fori_loop(0, max_iter, body_fn, (laml, lamr, Fl, Fr))
     return lamr, Fr
 
 
-#@partial(jaxm.jit, static_argnames=("device", "max_iter"))
-#def positive_cholesky_factorization(H, reg0=0.0, device=device, max_iter=10):
 @partial(jaxm.jit, static_argnames=("max_iter",))
 def positive_cholesky_factorization(H, reg0=0.0, max_iter=10):
-    #F = cho_factor(H + reg0 * jaxm.eye(H.shape[-1], dtype=H.dtype, device=device))
+    # F = cho_factor(H + reg0 * jaxm.eye(H.shape[-1], dtype=H.dtype, device=device))
     F = cho_factor(H + reg0 * jnp.eye(H.shape[-1], dtype=H.dtype))
     return jaxm.jax.lax.cond(
         jaxm.isfinite(F[0][0, 0]),
         lambda: (reg0, F),
-        lambda: _find_cholesky_factorization(
-            #H, F, reg0, device=device, max_iter=max_iter
-            H, F, reg0, max_iter=max_iter
-        ),
+        lambda: _find_cholesky_factorization(H, F, reg0, max_iter),
     )
 
 
@@ -274,7 +259,7 @@ class SQPSolver(ConvexSolver):
         reg0=1e-6,
         linesearch="scan",
         force_step: bool = False,
-        #device="cpu",
+        # device="cpu",
         g_fn: Callable | None = None,
         h_fn: Callable | None = None,
     ):
@@ -293,9 +278,7 @@ class SQPSolver(ConvexSolver):
             linesearch (str, optional): Which linesearch to use from
                                     ["scan", "backtracking", "binary_search"]. Defaults to "scan".
         """
-        assert (
-            linesearch != "binary_search"
-        ), "binary_search not supported for non-convex objetives"
+        assert linesearch != "binary_search", "binary_search not supported for non-convex objetives"
         super().__init__(
             fun,
             maxiter=maxiter,
@@ -308,7 +291,7 @@ class SQPSolver(ConvexSolver):
             reg0=reg0,
             linesearch=linesearch,
             force_step=force_step,
-            #device=device,
+            # device=device,
             g_fn=g_fn,
             h_fn=h_fn,
         )
@@ -321,10 +304,11 @@ class SQPSolver(ConvexSolver):
         def find_H_factorization(H):
             # reg = jaxm.minimum(-jaxm.min(jaxm.linalg.eigvalsh(H)), 0.0)
             reg = positive_cholesky_factorization(
-                #H, reg0=self.reg0, device=self.device
-                H, reg0=self.reg0
+                # H, reg0=self.reg0, device=self.device
+                H,
+                reg0=self.reg0,
             )[0]
-            #H = H + reg * jaxm.eye(H.shape[-1], dtype=dtype, device=self.device)
+            # H = H + reg * jaxm.eye(H.shape[-1], dtype=dtype, device=self.device)
             H = H + reg * jnp.eye(H.shape[-1], dtype=dtype)
             return self._update(g, H, params, state, *args, **kw)
 

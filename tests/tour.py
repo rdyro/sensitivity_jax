@@ -1,7 +1,3 @@
-# Tour of `sensitivity_jax`
-
-
-```python
 import jax
 from jax import numpy as jnp
 import numpy as np
@@ -104,4 +100,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-```
